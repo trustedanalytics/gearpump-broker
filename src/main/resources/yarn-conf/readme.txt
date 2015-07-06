@@ -1,0 +1,1 @@
+This directory will hold hadoop/yarn configuration files.

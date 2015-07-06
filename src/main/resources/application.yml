@@ -1,0 +1,51 @@
+security:
+#password cf client will use when interacting with broker
+  user.password: ${user.password:}
+gearpump:
+  pack:
+    name: gearpump-${gearpump.pack.version:0.0.0}.zip
+    version: ${gearpump.pack.version:0.0.0}
+  destinationFolder: gearpump-${gearpump.pack.version:0.0.0}
+  gearpumpUri: ${gearpump.uri:}
+  hdfsDir: ${hdfs.dir:/user/gearpump}
+  confDir: conf/yarn.conf
+  uiOrg: ${GEARPUMP_UI_ORG:}
+  uiSpace: ${GEARPUMP_UI_SPACE:}
+  uiName: ${GEARPUMP_UI_NAME:}
+  yarnclient:
+    jarPath: lib/
+cf:
+  #name of service in cloud foundry catalog
+  servicename: ${cf.catalog.servicename:gearpump}
+  #id of service in cloud foundry catalog
+  serviceid: ${cf.catalog.serviceid:gearpump}
+  #id of base plan in cloud foundry catalog
+  baseId: ${BASE_GUID:}
+metadata:
+  imageUrl: ${IMAGE_URL:}
+
+
+kerberos:
+  kdc: ${KRB_KDC:kdc}
+  realm: ${KRB_REALM:realm}
+  user: ${KRB_USER:user}
+  password: ${KRB_PASSWORD:password}
+
+#do not change name of "HADOOP_CONF_DIR" env variable - hadoop cmd client is also using it
+yarn:
+  conf:
+    dir: ${HADOOP_CONF_DIR:/yarn-conf}
+    vcap_location: vcap.services.yarn-gearpump.credentials.HADOOP_CONFIG_ZIP.encoded_zip
+    override: false
+
+api.endpoint: ${vcap.services.sso.credentials.apiEndpoint:}
+
+spring.oauth2:
+  client:
+    accessTokenUri: ${vcap.services.sso.credentials.tokenUri:}
+    clientId: ${vcap.services.sso.credentials.clientId:}
+    clientSecret: ${vcap.services.sso.credentials.clientSecret:}
+
+logging:
+  level:
+    org.trustedanalytics.servicebroker.gearpump: DEBUG

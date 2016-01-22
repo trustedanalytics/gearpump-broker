@@ -16,18 +16,16 @@
 
 package org.trustedanalytics.servicebroker.gearpump.service;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.trustedanalytics.servicebroker.gearpump.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.gearpump.config.KerberosConfig;
 import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.ExternalProcessException;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.GearPumpDriverExec;
-import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.RandomStringGenerator;
+import org.trustedanalytics.servicebroker.gearpump.yarn.YarnAppManager;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
@@ -38,15 +36,18 @@ public class GearPumpSpawner {
     private static final Logger LOGGER = LoggerFactory.getLogger(GearPumpSpawner.class);
 
     private final GearPumpDriverExec gearPumpDriver;
-
     private final ApplicationBrokerService applicationBrokerService;
+    private YarnAppManager yarnAppManager;
 
     //TODO can be Autowired in future
     private final KerberosService kerberosService;
 
-    public GearPumpSpawner(GearPumpDriverExec gearPumpDriver, ApplicationBrokerService applicationBrokerService) throws IOException, LoginException {
+    public GearPumpSpawner(GearPumpDriverExec gearPumpDriver,
+                           ApplicationBrokerService applicationBrokerService,
+                           YarnAppManager yarnAppManager) throws IOException, LoginException {
         this.gearPumpDriver = gearPumpDriver;
         this.applicationBrokerService = applicationBrokerService;
+        this.yarnAppManager = yarnAppManager;
         kerberosService = new KerberosService(new KerberosConfig().getKerberosProperties());
     }
 
@@ -54,21 +55,25 @@ public class GearPumpSpawner {
         return gearPumpDriver.spawnGearPumpOnYarn();
     }
 
-    private void provisionOnCf(GearPumpCredentials gearPumpCredentials, String spaceId, String serviceInstanceId) {
+    private void provisionOnCf(GearPumpCredentials gearPumpCredentials, String spaceId, String serviceInstanceId) throws IOException {
         LOGGER.info("provisioning on Cloud Foundry");
 
         String UIServiceInstanceName = "gearpump-ui-" + serviceInstanceId;
-        String username = RandomStringGenerator.generate();
-        String password = RandomStringGenerator.generate();
+        String username = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
+        String password = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
 
         Map<String, String> dashboardData = applicationBrokerService.deployUI(UIServiceInstanceName, username, password, gearPumpCredentials.getMasters(), spaceId);
 
-        gearPumpCredentials.setUsername(username);
-        gearPumpCredentials.setPassword(password);
-        gearPumpCredentials.setPort("80");
+        updateCredentials(gearPumpCredentials, dashboardData);
+    }
+
+    private void updateCredentials(GearPumpCredentials gearPumpCredentials, Map<String, String> dashboardData) {
         gearPumpCredentials.setDashboardUrl(dashboardData.get("uiAppUrl"));
         gearPumpCredentials.setHostname(dashboardData.get("uiAppUrl"));
+        gearPumpCredentials.setPort(dashboardData.get("uiAppPort"));
         gearPumpCredentials.setDashboardGuid(dashboardData.get("uiServiceInstanceGuid"));
+        gearPumpCredentials.setUsername(dashboardData.get("username"));
+        gearPumpCredentials.setPassword(dashboardData.get("password"));
     }
 
     public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId) throws Exception {
@@ -84,7 +89,14 @@ public class GearPumpSpawner {
             throw new Exception(errorMsg(serviceInstanceId), e);
         }
     }
-    
+
+    public void deprovisionInstance(GearPumpCredentials gearpumpCredentials) throws YarnException {
+        yarnAppManager.killApplication(gearpumpCredentials.getYarnApplicationId());
+        LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearpumpCredentials.getYarnApplicationId());
+
+        applicationBrokerService.deleteUIServiceInstance(gearpumpCredentials.getDashboardGuid());
+    }
+
     private String errorMsg(String serviceInstanceId) {
         return "Unable to provision gearPump for: " + serviceInstanceId;
     }

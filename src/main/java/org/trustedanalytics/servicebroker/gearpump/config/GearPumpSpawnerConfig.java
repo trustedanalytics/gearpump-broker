@@ -24,6 +24,7 @@ import org.trustedanalytics.servicebroker.gearpump.service.CredentialPersistorSe
 import org.trustedanalytics.servicebroker.gearpump.service.GearPumpSpawner;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.GearPumpCredentialsParser;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.GearPumpDriverExec;
+import org.trustedanalytics.servicebroker.gearpump.yarn.YarnAppManager;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
@@ -33,8 +34,9 @@ public class GearPumpSpawnerConfig {
 
     @Bean
     public GearPumpSpawner getGearPumpSpawner(GearPumpDriverExec gearPumpDriver,
-                                              ApplicationBrokerService applicationBrokerService) throws IOException, LoginException {
-        return new GearPumpSpawner(gearPumpDriver, applicationBrokerService);
+                                              ApplicationBrokerService applicationBrokerService,
+                                              YarnAppManager yarnAppManager) throws IOException, LoginException {
+        return new GearPumpSpawner(gearPumpDriver, applicationBrokerService, yarnAppManager);
     }
 
     @Bean

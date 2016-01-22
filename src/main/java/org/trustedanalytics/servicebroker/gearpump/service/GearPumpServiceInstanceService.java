@@ -41,11 +41,7 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
     @Autowired
     private CredentialPersistorService credentialPersistorService;
     @Autowired
-    private YarnAppManager yarnAppManager;
-    @Autowired
     private PrerequisitesChecker prerequisitesChecker;
-    @Autowired
-    private ApplicationBrokerService applicationBrokerService;
 
     public GearPumpServiceInstanceService(ServiceInstanceService delegate) {
         super(delegate);
@@ -97,17 +93,10 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
 
         LOGGER.info("Obtained GearPump credentials: {}", gearpumpCredentials);
         try {
-            yarnAppManager.killApplication(gearpumpCredentials.getYarnApplicationId());
-            LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearpumpCredentials.getYarnApplicationId());
-        } catch (YarnException e) {
-            throw prepareSBException("Unable to delete service instance on Yarn", e);
-        }
-
-        // DELETE UI
-        try {
-            applicationBrokerService.deleteUIServiceInstance(gearpumpCredentials.getDashboardGuid());
+            gearPumpSpawner.deprovisionInstance(gearpumpCredentials);
         } catch (Exception e) {
-            LOGGER.info("Unable to delete dashboard service instance");
+            LOGGER.error("Couldn't spawn GearPump instance", e);
+            throw prepareSBException("Couldn't spawn GearPump instance", e);
         }
 
         return super.deleteServiceInstance(request);

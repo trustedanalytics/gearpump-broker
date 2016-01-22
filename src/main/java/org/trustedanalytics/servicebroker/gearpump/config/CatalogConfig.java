@@ -38,7 +38,7 @@ public class CatalogConfig {
     @Bean
     public Catalog catalog() {
         return new Catalog(Arrays.asList(new ServiceDefinition(configuration.getCfServiceId(), configuration.getCfServiceName(),
-                "A simple gearpump broker", true, true, getSharedPlans(), null, getServiceDefinitionMetadata(), Arrays.asList(SYSLOG_DRAIN), null)));
+                "A simple gearpump broker", true, true, getSharedPlans(), Arrays.asList("data-science-tool"), getServiceDefinitionMetadata(), Arrays.asList(SYSLOG_DRAIN), null)));
     }
 
     private List<Plan> getSharedPlans() {

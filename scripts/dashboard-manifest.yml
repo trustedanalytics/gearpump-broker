@@ -1,0 +1,10 @@
+---
+applications:
+- name: gearpump-dashboard
+  memory: 768M
+  disk_quota: 768M
+  instances: 1
+  host: gearpump-dashboard
+  path: target/gearpump-dashboard.zip
+env:
+  GEARPUMP_MASTER: localhost:9999

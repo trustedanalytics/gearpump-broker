@@ -23,7 +23,7 @@ class YarnAppIdParser {
 
     private String applicationId;
 
-    private static final String APPLICATION_ID_FORMAT_PATTERN = "application_[0-9]{13}_[0-9]{4}";
+    private static final String APPLICATION_ID_FORMAT_PATTERN = "application_[0-9]{13}_[0-9]+";
 
     public YarnAppIdParser(String applicationId) {
         this.applicationId = applicationId;

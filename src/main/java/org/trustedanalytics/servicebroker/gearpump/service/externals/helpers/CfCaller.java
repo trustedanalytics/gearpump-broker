@@ -16,17 +16,17 @@
 
 package org.trustedanalytics.servicebroker.gearpump.service.externals.helpers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 
 public final class CfCaller {
+
+    private static ObjectMapper MAPPER = new ObjectMapper();
 
     private RestTemplate restTemplate;
 
@@ -35,7 +35,6 @@ public final class CfCaller {
     }
 
     public RestTemplate createRestTemplate() {
-        ClientCredentialsResourceDetails clientCredentials = new ClientCredentialsResourceDetails();
         return this.restTemplate;
     }
 
@@ -54,10 +53,8 @@ public final class CfCaller {
         return headers;
     }
 
-    public static String getValueFromJson(String json, String valuePath)
-            throws JsonProcessingException, IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(json);
+    public static String getValueFromJson(String json, String valuePath) throws IOException {
+        JsonNode root = MAPPER.readTree(json);
         return root.at(valuePath).asText();
     }
 

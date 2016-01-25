@@ -69,8 +69,6 @@ public class GearPumpSpawner {
 
     private void updateCredentials(GearPumpCredentials gearPumpCredentials, Map<String, String> dashboardData) {
         gearPumpCredentials.setDashboardUrl(dashboardData.get("uiAppUrl"));
-        gearPumpCredentials.setHostname(dashboardData.get("uiAppUrl"));
-        gearPumpCredentials.setPort(dashboardData.get("uiAppPort"));
         gearPumpCredentials.setDashboardGuid(dashboardData.get("uiServiceInstanceGuid"));
         gearPumpCredentials.setUsername(dashboardData.get("username"));
         gearPumpCredentials.setPassword(dashboardData.get("password"));

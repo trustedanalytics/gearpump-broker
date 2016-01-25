@@ -61,7 +61,7 @@ public class GearPumpServiceInstanceBindingServiceTest {
 
         ServiceInstanceBinding instance = service.createServiceInstanceBinding(request);
 
-        assertThat(instance.getCredentials().get("hostname"), equalTo("hostname"));
+        assertThat(instance.getCredentials().get("dashboardUrl"), equalTo("dashboardUrl"));
     }
 
     private ServiceInstanceBinding getServiceInstanceBinding(String id) {
@@ -73,7 +73,7 @@ public class GearPumpServiceInstanceBindingServiceTest {
     }
 
     private GearPumpCredentials getCredentials(String id) {
-        return new GearPumpCredentials("masters", "yarnApplicationId", "dashboardGuid", "dashboardUrl", "hostname", "80", "username", "password");
+        return new GearPumpCredentials("masters", "yarnApplicationId", "dashboardUrl", "dashboardGuid", "username", "password");
     }
 
 }

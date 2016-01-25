@@ -67,8 +67,6 @@ public class CredentialPersistorService {
                     (String) map.get("yarnApplicationId"),
                     (String) map.get("dashboardUrl"),
                     (String) map.get("dashboardGuid"),
-                    (String) map.get("hostname"),
-                    (String) map.get("port"),
                     (String) map.get("username"),
                     (String) map.get("password"));
         }

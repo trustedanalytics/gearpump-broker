@@ -15,7 +15,7 @@ applications:
   env:
     SPRING_PROFILES_ACTIVE: "cloud"
     USER_PASSWORD: "placeholder"
-    BASE_GUID: "placeholder"
+    BASE_GUID: "gearpump"
     GEARPUMP_URI: "placeholder"
     GEARPUMP_PACK_VERSION: "2.11-0.7.4"
     HDFS_DIR: /user/gearpump

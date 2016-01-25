@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceServiceStore;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
 import org.trustedanalytics.servicebroker.gearpump.service.prerequisities.PrerequisitesChecker;
-import org.trustedanalytics.servicebroker.gearpump.yarn.YarnAppManager;
 
 import java.io.IOException;
 

@@ -8,7 +8,10 @@
 ##
 ## Expects following env variables to be set
 ## * GEARPUMP_MASTER - gearpump host address (host:port)
-## * PORT - http port that dashboard is to be served
+## * PORT - http port that dashboard is to be served (normally provided by CF)
+##
+## If USERNAME variable is set, gear.conf is rewritten to include the user
+## and the password digest (based on PASSWORD variable) and enable security.
 ##############################################################################
 ##
 ## Copyright (c) 2015 Intel Corporation
@@ -27,7 +30,7 @@
 ##############################################################################
 
 # Add default JVM options here. You can also use JAVA_OPTS and DASHBOARD_OPTS to pass JVM options to this script.
-DEFAULT_JVM_OPTS=""   #-server
+DEFAULT_JVM_OPTS="-server"
 
 APP_NAME="gearpump-dashboard"
 APP_BASE_NAME=`basename "$0"`
@@ -121,60 +124,15 @@ if [ "$cygwin" = "false" -a "$darwin" = "false" ] ; then
     fi
 fi
 
-# For Darwin, add options to specify how the application appears in the dock
-if $darwin; then
-    GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_NAME\" \"-Xdock:icon=$APP_HOME/media/gradle.icns\""
-fi
-
-# For Cygwin, switch paths to Windows format before running java
-if $cygwin ; then
-    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
-    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
-    JAVACMD=`cygpath --unix "$JAVACMD"`
-
-    # We build the pattern for arguments to be converted via cygpath
-    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
-    SEP=""
-    for dir in $ROOTDIRSRAW ; do
-        ROOTDIRS="$ROOTDIRS$SEP$dir"
-        SEP="|"
-    done
-    OURCYGPATTERN="(^($ROOTDIRS))"
-    # Add a user-defined pattern to the cygpath arguments
-    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
-        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
-    fi
-    # Now convert the arguments - kludge to limit ourselves to /bin/sh
-    i=0
-    for arg in "$@" ; do
-        CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
-        CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
-
-        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ] ; then                    ### Added a condition
-            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
-        else
-            eval `echo args$i`="\"$arg\""
-        fi
-        i=$((i+1))
-    done
-    case $i in
-        (0) set -- ;;
-        (1) set -- "$args0" ;;
-        (2) set -- "$args0" "$args1" ;;
-        (3) set -- "$args0" "$args1" "$args2" ;;
-        (4) set -- "$args0" "$args1" "$args2" "$args3" ;;
-        (5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
-        (6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
-        (7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" ;;
-        (8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
-        (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
-    esac
-fi
-
 # Split up the JVM_OPTS And DASHBOARD_OPTS values into an array, following the shell quoting and substitution rules
 function splitJvmOpts() {
     JVM_OPTS=("$@")
 }
+
+
+if [ -z "$GEARPUMP_MASTER" ] ; then
+    die "ERROR: GEARPUMP_MASTER is not set!"
+fi
 
 DASHBOARD_OPTS="-Dgearpump.cluster.masters.0=$GEARPUMP_MASTER -Dgearpump.home=${APP_HOME} -Dprog.home=${APP_HOME} -Dprog.version=${PROG_VERSION}"
 #  THESE OPTIONS WERE USED IN 'ORIGINAL' SERVICES SCRIPT BUT WE DON'T USE THEM.
@@ -183,14 +141,39 @@ echo "DASHBOARD_OPTS: $DASHBOARD_OPTS"
 
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $DASHBOARD_OPTS
 
+
+###########################
+# Prepare config file
+
 # change the port
 sed -i "s/8090/${PORT}/g" $APP_HOME/lib/gear.conf
 
 
-if [ -z "$GEARPUMP_MASTER" ] ; then
-    die "ERROR: GEARPUMP_MASTER is not set!"
+if [ -n "$USERNAME" ] ; then
+    if [ -z "$PASSWORD" ] ; then
+        die "ERROR: PASSWORD not set. Cannot configure security!"
+    fi
+
+    # generate digest for user's password
+    DIGEST=$(exec "$JAVACMD" -classpath "$CLASSPATH" io.gearpump.security.PasswordUtil -password $PASSWORD | tail -1)
+
+    toFind="\"admin\""
+    toReplace="\"$USERNAME\""
+    echo "$toFind -> $toReplace"
+    sed -i "s/$toFind/$toReplace/" $APP_HOME/lib/gear.conf
+
+    toFind="\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\""
+    toReplace="\"$DIGEST\""
+    echo "$toFind -> $toReplace"
+    sed -i "s|$toFind|$toReplace|" $APP_HOME/lib/gear.conf
+
+    # enable authentication
+    sed -i "s/ui-authentication-enabled = false/ui-authentication-enabled = true/" $APP_HOME/lib/gear.conf
+    ## TODO: can be moved to prepare.sh when we decide to enable security by default
 fi
 
 
-echo "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" io.gearpump.services.main.Services "$@"
+###########################
+# Run dshboard
+# echo "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" io.gearpump.services.main.Services "$@"
 exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" io.gearpump.services.main.Services "$@"

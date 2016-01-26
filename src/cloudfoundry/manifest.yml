@@ -1,0 +1,32 @@
+---
+applications:
+- name: gearpump-broker
+  memory: 2G
+  instances: 1
+  disk_quota: 1024M
+  host: gearpump-broker
+  path: target/gearpump-broker-${version}.jar
+  services:
+  - sso
+  - zookeeper-gearpump
+  - kerberos-service
+  - hdfs-gearpump
+  - yarn-gearpump
+  env:
+    SPRING_PROFILES_ACTIVE: "cloud"
+    USER_PASSWORD: "placeholder"
+    BASE_GUID: "placeholder"
+    GEARPUMP_URI: "placeholder"
+    GEARPUMP_PACK_VERSION: "2.11-0.7.4"
+    HDFS_DIR: /user/gearpump
+    IMAGE_URL: "placeholder"
+    VERSION: ${version}
+    TAGS: gearpump
+    JAVA_HOME: /home/vcap/app/.java-buildpack/open_jdk_jre/
+    HADOOP_CONF_DIR: /home/vcap/app/yarn-conf
+    KRB5CCNAME: /tmp/cf@CLOUDERA
+    CF_CATALOG_SERVICENAME: gearpump
+    CF_CATALOG_SERVICEID: gearpump
+    GEARPUMP_UI_ORG: "seedorg"
+    GEARPUMP_UI_SPACE: "seedspace"
+    GEARPUMP_UI_NAME: "gearpump-dashboard"

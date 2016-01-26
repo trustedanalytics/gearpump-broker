@@ -20,20 +20,16 @@ package org.trustedanalytics.servicebroker.gearpump.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.trustedanalytics.cfbroker.store.zookeeper.service.ZookeeperClient;
-import org.trustedanalytics.hadoop.config.client.*;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class CredentialPersistorService {
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     private ZookeeperClient zookeeperClient;
@@ -42,24 +38,10 @@ public class CredentialPersistorService {
         this.zookeeperClient = zookeeperClient;
     }
 
-    public String toJSONString(Map<String, Object> map) throws JsonProcessingException {
-        return mapper.writeValueAsString(map);
-    }
-
-    public void persistCredentials(String serviceInstanceId, Map<String, Object> map) throws IOException {
-        zookeeperClient.addZNode(this.getZNodePath(serviceInstanceId), toJSONString(map).getBytes(CHARSET));
-    }
-
-    public GearPumpCredentials readCredentials(String serviceInstanceId) throws IOException {
-        byte[] bytes = zookeeperClient.getZNode(this.getZNodePath(serviceInstanceId));
-        return fromJSONString(new String(bytes));
-    }
-
-
     public static GearPumpCredentials fromJSONString(String json) throws IOException {
         GearPumpCredentials result = null;
 
-        Map<String, Object> map = mapper.readValue(json, new TypeReference<Map<String, String>>(){});
+        Map<String, Object> map = OBJECT_MAPPER.readValue(json, new TypeReference<Map<String, String>>(){});
 
         if (map != null && map.size() != 0) {
             result = new GearPumpCredentials(
@@ -72,6 +54,23 @@ public class CredentialPersistorService {
         }
 
         return result;
+    }
+
+    public String toJSONString(Map<String, Object> map) throws JsonProcessingException {
+        return OBJECT_MAPPER.writeValueAsString(map);
+    }
+
+    public void persistCredentials(String serviceInstanceId, Map<String, Object> map) throws IOException {
+        zookeeperClient.addZNode(this.getZNodePath(serviceInstanceId), toJSONString(map).getBytes(CHARSET));
+    }
+
+    public GearPumpCredentials readCredentials(String serviceInstanceId) throws IOException {
+        byte[] bytes = zookeeperClient.getZNode(this.getZNodePath(serviceInstanceId));
+        return fromJSONString(new String(bytes));
+    }
+
+    public void removeCredentials(String serviceInstanceId) throws IOException {
+        zookeeperClient.deleteZNode(this.getZNodePath(serviceInstanceId));
     }
 
     private String getZNodePath(String serviceInstanceId) {

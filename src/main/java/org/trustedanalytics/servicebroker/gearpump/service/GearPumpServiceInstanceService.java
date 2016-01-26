@@ -78,10 +78,9 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
 
     @Override
     public ServiceInstance deleteServiceInstance(DeleteServiceInstanceRequest request) throws ServiceBrokerException {
+        LOGGER.info("Deleting GearPump service instance with guid: {}", request.getServiceInstanceId());
 
         GearPumpCredentials gearpumpCredentials = null;
-
-        LOGGER.info("Deleting GearPump service instance with guid: {}", request.getServiceInstanceId());
 
         try {
             gearpumpCredentials = credentialPersistorService.readCredentials(request.getServiceInstanceId());
@@ -90,12 +89,13 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
             throw prepareSBException("Couldn't obtain credentials", e);
         }
 
-        LOGGER.info("Obtained GearPump credentials: {}", gearpumpCredentials);
+        LOGGER.debug("Obtained GearPump credentials: {}", gearpumpCredentials);
         try {
             gearPumpSpawner.deprovisionInstance(gearpumpCredentials);
+            credentialPersistorService.removeCredentials(request.getServiceInstanceId());
         } catch (Exception e) {
-            LOGGER.error("Couldn't spawn GearPump instance", e);
-            throw prepareSBException("Couldn't spawn GearPump instance", e);
+            LOGGER.error("Couldn't delete GearPump instance", e);
+            throw prepareSBException("Couldn't delete GearPump instance", e);
         }
 
         return super.deleteServiceInstance(request);

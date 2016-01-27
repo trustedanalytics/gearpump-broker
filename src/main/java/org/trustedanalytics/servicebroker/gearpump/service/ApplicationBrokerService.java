@@ -17,6 +17,7 @@
 package org.trustedanalytics.servicebroker.gearpump.service;
 
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,51 +61,95 @@ public class ApplicationBrokerService {
     private static final String GET_SERVICE_GUID_URL = "{apiUrl}/v2/spaces/{spaceId}/services?q=label:{applicationName}";
     private static final String GET_SERVICE_PLAN_GUID_URL = "{apiUrl}/v2/service_plans?q=service_guid:{serviceGuid}";
     private static final String CREATE_SERVICE_INSTANCE_URL = "{apiUrl}/v2/service_instances";
-    private static final String POST_SERVICE_BINDINGS_URL = "{apiUrl}/v2/service_bindings";
     private static final String POST_CREATE_SERVICE_KEY_URL = "{apiUrl}/v2/service_keys";
     private static final String DELETE_SERVICE_KEY_URL = "{apiUrl}/v2/service_keys/{serviceKeyGuid}";
     private static final String DELETE_SERVICE_URL = "{apiUrl}/v2/service_instances/{serviceId}";
+
+    private static String uiOrgGuid;
+    private static String uiSpaceGuid;
+    private static String uiServiceGuid;
+    private static String uiServicePlanGuid;
+
+    private String getUIOrgGuid() throws DashboardServiceException {
+        LOGGER.debug("getUIOrgGuid()");
+        if (uiOrgGuid == null) {
+            LOGGER.info("Getting UI Org GUID from CF");
+            ResponseEntity<String> response = execute(GET_ORG_GUID_URL, HttpMethod.GET, "", apiEndpoint, cfCallerConfiguration.getGearpumpUiOrg());
+            try {
+                uiOrgGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
+            } catch (IOException e) {
+                throw new DashboardServiceException("Cannot obtain org GUID (check GEARPUMP_UI_ORG variable).", e);
+            }
+            LOGGER.debug("UI Org GUID '{}'", uiOrgGuid);
+            if (StringUtils.isEmpty(uiOrgGuid)) {
+                throw new DashboardServiceException("Cannot obtain org GUID (check GEARPUMP_UI_ORG variable).");
+            }
+        }
+        return uiOrgGuid;
+    }
+
+    private String getUISpaceGuid(String uiOrgGuid) throws DashboardServiceException {
+        LOGGER.debug("getUISpaceGuid({})", uiOrgGuid);
+        if (uiSpaceGuid == null) {
+            LOGGER.info("Getting UI Space GUID from CF");
+            ResponseEntity<String> response = execute(GET_SPACE_GUID_URL, HttpMethod.GET, "", apiEndpoint, uiOrgGuid, cfCallerConfiguration.getGearpumpUiSpace());
+            try {
+                uiSpaceGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
+            } catch (IOException e) {
+                throw new DashboardServiceException("Cannot obtain space GUID (check GEARPUMP_UI_SPACE variable).", e);
+            }
+            LOGGER.debug("UI Space GUID '{}'", uiSpaceGuid);
+            if (StringUtils.isEmpty(uiSpaceGuid)) {
+                throw new DashboardServiceException("Cannot obtain space GUID (check GEARPUMP_UI_SPACE variable).");
+            }
+        }
+        return uiSpaceGuid;
+    }
+
+    private String getUIServiceGuid(String uiSpaceGuid) throws DashboardServiceException {
+        LOGGER.debug("getUIServiceGuid({})", uiSpaceGuid);
+        if (uiServiceGuid == null) {
+            LOGGER.info("Getting UI Service GUID from CF");
+            ResponseEntity<String> response = execute(GET_SERVICE_GUID_URL, HttpMethod.GET, "", apiEndpoint, uiSpaceGuid, cfCallerConfiguration.getGearpumpUiName());
+            try {
+                uiServiceGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
+            } catch (IOException e) {
+                throw new DashboardServiceException("Cannot obtain dashboard service GUID (check GEARPUMP_UI_NAME variable).", e);
+            }
+            LOGGER.debug("UI Service GUID '{}'", uiServiceGuid);
+            if (StringUtils.isEmpty(uiServiceGuid)) {
+                throw new DashboardServiceException("Cannot obtain dashboard service GUID (check GEARPUMP_UI_NAME variable).");
+            }
+        }
+        return uiServiceGuid;
+    }
+
+    private String getUIServicePlanGuid(String serviceGuid) throws DashboardServiceException {
+        LOGGER.debug("getUIServicePlanGuid({})", serviceGuid);
+        if (uiServicePlanGuid == null) {
+            LOGGER.info("Getting Service Plan GUID from CF");
+            ResponseEntity<String> response = execute(GET_SERVICE_PLAN_GUID_URL, HttpMethod.GET, "", apiEndpoint, serviceGuid);
+            try {
+                uiServicePlanGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
+            } catch (IOException e) {
+                throw new DashboardServiceException("Cannot obtain dashboard service plan GUID.", e);
+            }
+            LOGGER.debug("UI Service Plan GUID '{}'", uiServicePlanGuid);
+            if (StringUtils.isEmpty(uiServicePlanGuid)) {
+                throw new DashboardServiceException("Cannot obtain dashboard service plan GUID.");
+            }
+        }
+        return uiServicePlanGuid;
+    }
 
     private ResponseEntity<String> execute(String url, HttpMethod method, String body, Object... urlVariables) {
         RestTemplate restTemplate = cfCaller.createRestTemplate();
         HttpEntity<String> request = cfCaller.createJsonRequest(body);
         URI expanded = (new UriTemplate(url)).expand(urlVariables);
-        LOGGER.info("Performing call : " + expanded.toString());
+        LOGGER.info("Performing call: {}", expanded.toString());
         ResponseEntity<String> response = restTemplate.exchange(url, method, request, String.class, urlVariables);
-        LOGGER.debug("Response status: " + response.getStatusCode());
+        LOGGER.debug("Response status: {}", response.getStatusCode());
         return response;
-    }
-
-    private String getUIOrgGuid() throws IOException {
-        LOGGER.info("Getting UI Org Guid");
-        ResponseEntity<String> response = execute(GET_ORG_GUID_URL, HttpMethod.GET, "", apiEndpoint, cfCallerConfiguration.getGearpumpUiOrg());
-        String uiOrgGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
-        LOGGER.debug("UI Org Guid {}", uiOrgGuid);
-        return uiOrgGuid;
-    }
-
-    private String getUISpaceGuid(String uiOrgGuid) throws IOException {
-        LOGGER.info("Getting UI Space Guid");
-        ResponseEntity<String> response = execute(GET_SPACE_GUID_URL, HttpMethod.GET, "", apiEndpoint, uiOrgGuid, cfCallerConfiguration.getGearpumpUiSpace());
-        String uiSpaceGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
-        LOGGER.debug("UI Space Guid {}", uiSpaceGuid);
-        return uiSpaceGuid;
-    }
-
-    private String getUIServiceGuid(String uiSpaceGuid) throws IOException {
-        LOGGER.info("Getting UI Service Guid");
-        ResponseEntity<String> response = execute(GET_SERVICE_GUID_URL, HttpMethod.GET, "", apiEndpoint, uiSpaceGuid, cfCallerConfiguration.getGearpumpUiName());
-        String uiServiceGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
-        LOGGER.debug("UI Service Guid {}", uiServiceGuid);
-        return uiServiceGuid;
-    }
-
-    private String getUIServicePlanGuid(String serviceGuid) throws IOException {
-        LOGGER.info("Getting Service Plan Guid");
-        ResponseEntity<String> response = execute(GET_SERVICE_PLAN_GUID_URL, HttpMethod.GET, "", apiEndpoint, serviceGuid);
-        String uiServicePlanGuid = cfCaller.getValueFromJson(response.getBody(), RESOURCES_0_METADATA_GUID);
-        LOGGER.debug("UI Service Plan Guid " + uiServicePlanGuid);
-        return uiServicePlanGuid;
     }
 
     private String createUIInstance(String uiInstanceName, String spaceId, String uiServicePlanGuid, String username, String password, String gearpumpMaster) throws IOException {
@@ -113,14 +158,8 @@ public class ApplicationBrokerService {
         LOGGER.debug("Create app body: {}", body);
         ResponseEntity<String> response = execute(CREATE_SERVICE_INSTANCE_URL, HttpMethod.POST, body, apiEndpoint);
         String uiServiceInstanceGuid = cfCaller.getValueFromJson(response.getBody(), METADATA_GUID);
-        LOGGER.debug("UI Service Instance Guid " + uiServiceInstanceGuid);
+        LOGGER.debug("UI Service Instance Guid '{}'", uiServiceInstanceGuid);
         return uiServiceInstanceGuid;
-    }
-
-    private void bindServiceInstanceToUIApp(String uiAppGuid, String uiServiceInstanceGuid) {
-        LOGGER.info("Binding UI App to Service Instance");
-        String body = String.format(CREATE_SERVICE_BINDING_BODY_TEMPLATE, uiAppGuid, uiServiceInstanceGuid);
-        execute(POST_SERVICE_BINDINGS_URL, HttpMethod.POST, body, apiEndpoint, uiAppGuid, uiServiceInstanceGuid);
     }
 
     private String getUIAppUrl(String uiServiceInstanceGuid) throws IOException {
@@ -131,7 +170,7 @@ public class ApplicationBrokerService {
         String serviceKeyGuid = cfCaller.getValueFromJson(response.getBody(), METADATA_GUID);
         LOGGER.info("Deleting service key");
         execute(DELETE_SERVICE_KEY_URL, HttpMethod.DELETE, "", apiEndpoint, serviceKeyGuid);
-        LOGGER.debug("UI App url {}", uiAppUrl);
+        LOGGER.debug("UI App url '{}'", uiAppUrl);
         return uiAppUrl;
     }
 
@@ -140,20 +179,25 @@ public class ApplicationBrokerService {
         execute(DELETE_SERVICE_URL, HttpMethod.DELETE, "", apiEndpoint, uiServiceGuid);
     }
 
-    public Map<String, String> deployUI(String uiInstanceName, String username, String password, String gearpumpMaster, String spaceId) throws IOException {
-        // TODO the following could be obtrained only once
+    public Map<String, String> deployUI(String uiInstanceName, String username, String password, String gearpumpMaster, String spaceId)
+            throws DashboardServiceException, ApplicationBrokerServiceException {
         String uiOrgGuid = getUIOrgGuid();
         String uiSpaceGuid = getUISpaceGuid(uiOrgGuid);
         String uiServiceGuid = getUIServiceGuid(uiSpaceGuid);
         String uiServicePlanGuid = getUIServicePlanGuid(uiServiceGuid);
 
-        String uiServiceInstanceGuid = createUIInstance(uiInstanceName, spaceId, uiServicePlanGuid, username, password, gearpumpMaster);
-        String uiAppUrl = getUIAppUrl(uiServiceInstanceGuid);
-        //bindServiceInstanceToUIApp(uiAppGuid, uiServiceInstanceGuid);
-        Map<String, String> dashboardData = new HashMap<String, String>();
+        String uiServiceInstanceGuid = null;
+        String uiAppUrl = null;
+        try {
+            uiServiceInstanceGuid = createUIInstance(uiInstanceName, spaceId, uiServicePlanGuid, username, password, gearpumpMaster);
+            uiAppUrl = getUIAppUrl(uiServiceInstanceGuid);
+        } catch (IOException e) {
+            throw new ApplicationBrokerServiceException("Cannot create UI instance.", e);
+        }
+
+        Map<String, String> dashboardData = new HashMap<>();
         dashboardData.put("uiServiceInstanceGuid", uiServiceInstanceGuid);
         dashboardData.put("uiAppUrl", uiAppUrl);
-        dashboardData.put("uiAppPort", "80");
         dashboardData.put("username", username);
         dashboardData.put("password", password);
 

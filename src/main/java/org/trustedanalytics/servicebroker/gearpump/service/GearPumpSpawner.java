@@ -37,7 +37,7 @@ public class GearPumpSpawner {
 
     private final GearPumpDriverExec gearPumpDriver;
     private final ApplicationBrokerService applicationBrokerService;
-    private YarnAppManager yarnAppManager;
+    private final YarnAppManager yarnAppManager;
 
     //TODO can be Autowired in future
     private final KerberosService kerberosService;
@@ -55,8 +55,9 @@ public class GearPumpSpawner {
         return gearPumpDriver.spawnGearPumpOnYarn();
     }
 
-    private void provisionOnCf(GearPumpCredentials gearPumpCredentials, String spaceId, String serviceInstanceId) throws IOException {
-        LOGGER.info("provisioning on Cloud Foundry");
+    private void provisionOnCf(GearPumpCredentials gearPumpCredentials, String spaceId, String serviceInstanceId)
+            throws DashboardServiceException, ApplicationBrokerServiceException {
+        LOGGER.info("Pcd ge rovisioning on Cloud Foundry");
 
         String UIServiceInstanceName = "gearpump-ui-" + serviceInstanceId;
         String username = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
@@ -74,18 +75,15 @@ public class GearPumpSpawner {
         gearPumpCredentials.setPassword(dashboardData.get("password"));
     }
 
-    public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId) throws Exception {
+    public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId)
+            throws LoginException, IOException, DashboardServiceException, ApplicationBrokerServiceException, ExternalProcessException {
         LOGGER.info("Trying to provision gearPump for: " + serviceInstanceId);
-        try {
-            kerberosService.logIn();
+        kerberosService.logIn();
 
-            GearPumpCredentials credentials = provisionOnYarn();
-            provisionOnCf(credentials, spaceId, serviceInstanceId);
+        GearPumpCredentials credentials = provisionOnYarn();
+        provisionOnCf(credentials, spaceId, serviceInstanceId);
 
-            return credentials;
-        } catch (Exception e) {
-            throw new Exception(errorMsg(serviceInstanceId), e);
-        }
+        return credentials;
     }
 
     public void deprovisionInstance(GearPumpCredentials gearpumpCredentials) throws YarnException {

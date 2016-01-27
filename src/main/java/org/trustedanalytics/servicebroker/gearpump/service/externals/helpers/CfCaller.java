@@ -38,24 +38,23 @@ public final class CfCaller {
         return this.restTemplate;
     }
 
-    public static HttpEntity<String> createJsonRequest() {
+    public HttpEntity<String> createJsonRequest() {
         return new HttpEntity<String>(createJsonHeaders());
     }
 
-    public static HttpEntity<String> createJsonRequest(String body) {
+    public  HttpEntity<String> createJsonRequest(String body) {
         return new HttpEntity<String>(body, createJsonHeaders());
     }
 
-    public static HttpHeaders createJsonHeaders() {
+    public HttpHeaders createJsonHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Accept", "application/json");
         headers.add("Content-type", "application/json");
         return headers;
     }
 
-    public static String getValueFromJson(String json, String valuePath) throws IOException {
+    public String getValueFromJson(String json, String valuePath) throws IOException {
         JsonNode root = MAPPER.readTree(json);
         return root.at(valuePath).asText();
     }
-
 }

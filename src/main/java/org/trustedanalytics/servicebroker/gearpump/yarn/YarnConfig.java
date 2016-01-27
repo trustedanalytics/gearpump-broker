@@ -19,7 +19,6 @@ package org.trustedanalytics.servicebroker.gearpump.yarn;
 import org.apache.hadoop.conf.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.trustedanalytics.hadoop.config.client.*;
-import org.trustedanalytics.hadoop.config.client.helper.Yarn;
 import org.trustedanalytics.hadoop.kerberos.KrbLoginManagerFactory;
 import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 

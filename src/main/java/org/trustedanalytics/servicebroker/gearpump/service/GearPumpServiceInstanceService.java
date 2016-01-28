@@ -39,8 +39,6 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
     private GearPumpSpawner gearPumpSpawner;
     @Autowired
     private CredentialPersistorService credentialPersistorService;
-    @Autowired
-    private PrerequisitesChecker prerequisitesChecker;
 
     public GearPumpServiceInstanceService(ServiceInstanceService delegate) {
         super(delegate);
@@ -58,7 +56,6 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
         GearPumpCredentials gearPumpCredentials = null;
 
         try {
-            prerequisitesChecker.ensurePrerequisities();
             gearPumpCredentials = gearPumpSpawner.provisionInstance(instanceId, spaceId);
             LOGGER.info("GearPump instance has been spawned");
         } catch (Exception e) {

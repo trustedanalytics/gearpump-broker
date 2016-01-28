@@ -43,7 +43,7 @@ public class PrerequisitesChecker {
     private HdfsUtils hdfsUtils;
 
     @Autowired
-    ArchiverService archiverService;
+    private ArchiverService archiverService;
 
     @Autowired
     private ResourceManagerService resourceManagerService;

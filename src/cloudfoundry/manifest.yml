@@ -24,6 +24,7 @@ applications:
     TAGS: gearpump
     JAVA_HOME: /home/vcap/app/.java-buildpack/open_jdk_jre/
     HADOOP_CONF_DIR: /home/vcap/app/yarn-conf
+    HADOOP_USER_NAME: cf
     KRB5CCNAME: /tmp/cf@CLOUDERA
     CF_CATALOG_SERVICENAME: gearpump
     CF_CATALOG_SERVICEID: gearpump

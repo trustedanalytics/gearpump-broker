@@ -17,6 +17,7 @@ package org.trustedanalytics.servicebroker.gearpump.yarn;
 
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ import java.io.IOException;
 @Configuration
 public class YarnAppManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(YarnAppManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(YarnAppManager.class);
 
     @Autowired
     private YarnClientFactory yarnClientFactory;
@@ -40,13 +41,15 @@ public class YarnAppManager {
     }
 
     /**
-     * Remove application from Yarn.
+     * Remove application from YARN.
      * @param applicationId should be in format application_1449093574559_0004
      * @throws YarnException
      */
     public void killApplication(String applicationId) throws YarnException {
         try (YarnClient yarnClient = getYarnClient()) {
             yarnClient.killApplication(getApplicationId(applicationId));
+        } catch (ApplicationNotFoundException anfe) {
+            LOGGER.warn("Haven't found application {}. Assuming it was removed manually.", applicationId);
         } catch (IOException e) {
             throw new YarnException("Yarn error during application removal.", e);
         }

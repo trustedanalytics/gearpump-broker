@@ -53,9 +53,8 @@ public class ApplicationBrokerService {
     private static final String RESOURCES_0_METADATA_GUID = "/resources/0/metadata/guid";
     private static final String METADATA_GUID = "/metadata/guid";
     private static final String APP_URL = "/entity/credentials/url";
-    private static final String CREATE_SERVICE_BODY_TEMPLATE = "{\"name\":\"%s\", \"space_guid\":\"%s\", \"service_plan_guid\":\"%s\", \"parameters\":{\"name\":\"%s\",\"username\":\"%s\",\"password\":\"%s\",\"GEARPUMP_MASTER\":\"%s\"}}";
-    private static final String CREATE_SERVICE_BINDING_BODY_TEMPLATE = "{\"app_guid\":\"%s\", \"service_instance_guid\":\"%s\", \"async\":true}";
-    private static final String CREATE_SERVICE_KEY_BODY_TEMPLATE = "{\"service_instance_guid\":\"%s\", \"name\": temp_param}";
+    private static final String CREATE_SERVICE_BODY_TEMPLATE = "{\"name\":\"%s\", \"space_guid\":\"%s\", \"service_plan_guid\":\"%s\", \"parameters\":{\"name\":\"%s\",\"USERNAME\":\"%s\",\"PASSWORD\":\"%s\",\"GEARPUMP_MASTER\":\"%s\"}}";
+    private static final String CREATE_SERVICE_KEY_BODY_TEMPLATE = "{\"service_instance_guid\":\"%s\", \"name\": \"temp_param\"}";
     private static final String GET_ORG_GUID_URL = "{apiUrl}/v2/organizations?q=name:{orgName}";
     private static final String GET_SPACE_GUID_URL = "{apiUrl}/v2/organizations/{orgId}/spaces?q=name:{spaceName}";
     private static final String GET_SERVICE_GUID_URL = "{apiUrl}/v2/spaces/{spaceId}/services?q=label:{applicationName}";

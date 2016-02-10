@@ -148,30 +148,30 @@ eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $DASHBOARD_OPTS
 # change the port
 sed -i "s/8090/${PORT}/g" $APP_HOME/lib/gear.conf
 
-
-if [ -n "$USERNAME" ] ; then
-    if [ -z "$PASSWORD" ] ; then
-        die "ERROR: PASSWORD not set. Cannot configure security!"
-    fi
-
-    # generate digest for user's password
-    DIGEST=$(exec "$JAVACMD" -classpath "$CLASSPATH" io.gearpump.security.PasswordUtil -password $PASSWORD | tail -1)
-
-    toFind="\"admin\""
-    toReplace="\"$USERNAME\""
-    echo "$toFind -> $toReplace"
-    sed -i "s/$toFind/$toReplace/" $APP_HOME/lib/gear.conf
-
-    toFind="\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\""
-    toReplace="\"$DIGEST\""
-    echo "$toFind -> $toReplace"
-    sed -i "s|$toFind|$toReplace|" $APP_HOME/lib/gear.conf
-
-    # enable authentication
-    sed -i "s/ui-authentication-enabled = false/ui-authentication-enabled = true/" $APP_HOME/lib/gear.conf
-    ## TODO: can be moved to prepare.sh when we decide to enable security by default
+# check if USERNAME and PASSWORD are set
+if [ -z "$USERNAME" ] ; then
+    die "ERROR: USERNAME not set. Cannot configure security!"
+fi
+if [ -z "$PASSWORD" ] ; then
+    die "ERROR: PASSWORD not set. Cannot configure security!"
 fi
 
+# generate digest for user's password
+DIGEST=$(exec "$JAVACMD" -classpath "$CLASSPATH" io.gearpump.security.PasswordUtil -password $PASSWORD | tail -1)
+
+toFind="\"admin\""
+toReplace="\"$USERNAME\""
+echo "$toFind -> $toReplace"
+sed -i "s/$toFind/$toReplace/" $APP_HOME/lib/gear.conf
+
+toFind="\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\""
+toReplace="\"$DIGEST\""
+echo "$toFind -> $toReplace"
+sed -i "s|$toFind|$toReplace|" $APP_HOME/lib/gear.conf
+
+# enable authentication
+sed -i "s/authentication-enabled = false/authentication-enabled = true/" $APP_HOME/lib/gear.conf
+## TODO: can be moved to prepare.sh when we decide to enable security by default
 
 ###########################
 # Run dshboard

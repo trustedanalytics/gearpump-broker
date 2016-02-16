@@ -8,4 +8,4 @@ applications:
   path: target/gearpump-dashboard.zip
 env:
   GEARPUMP_MASTER: localhost:9999
-  VERSION: 0.6.1
+  VERSION: 0.6.2

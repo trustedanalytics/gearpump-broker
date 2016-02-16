@@ -25,24 +25,8 @@ import org.springframework.context.annotation.Configuration;
 //@Data
 public class ExternalConfiguration {
 
-    @Value("${cf.serviceid}")
-    @NotNull
-    private String cfServiceId;
-
-    @Value("${cf.servicename}")
-    @NotNull
-    private String cfServiceName;
-
     @Value("${gearpump.gearpumpUri}")
     private String gearpumpUri;
-
-    @Value("${cf.baseId}")
-    @NotNull
-    private String cfBaseId;
-
-    @Value("${metadata.imageUrl}")
-    @NotNull
-    private String imageUrl;
 
     // TODO think of moving the following properties to GearPumpSpawnerConfig
     //<-- spawning related
@@ -72,22 +56,6 @@ public class ExternalConfiguration {
 
     //>-- spawning related
 
-    public String getCfServiceName() {
-        return cfServiceName;
-    }
-
-    public void setCfServiceName(String cfServiceName) {
-        this.cfServiceName = cfServiceName;
-    }
-
-    public String getCfServiceId() {
-        return cfServiceId;
-    }
-
-    public void setCfServiceId(String cfServiceId) {
-        this.cfServiceId = cfServiceId;
-    }
-
     public String getGearpumpUri() {
         return gearpumpUri;
     }
@@ -95,23 +63,6 @@ public class ExternalConfiguration {
     public void setGearpumpUri(String gearpumpUri) {
         this.gearpumpUri = gearpumpUri;
     }
-
-    public String getCfBaseId() {
-        return cfBaseId;
-    }
-
-    public void setCfBaseId(String cfBaseId) {
-        this.cfBaseId = cfBaseId;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
 
     public String getYarnConfDir() {
         return yarnConfDir;
@@ -152,11 +103,7 @@ public class ExternalConfiguration {
     @Override
     public String toString() {
         return "ExternalConfiguration{" +
-                "cfServiceId='" + cfServiceId + '\'' +
-                ", cfServiceName='" + cfServiceName + '\'' +
                 ", gearpumpUri='" + gearpumpUri + '\'' +
-                ", cfBaseId='" + cfBaseId + '\'' +
-                ", imageUrl='" + imageUrl + '\'' +
                 ", yarnConfDir='" + yarnConfDir + '\'' +
                 ", gearPumpPackName='" + gearPumpPackName + '\'' +
                 ", gearPumpPackVersion='" + gearPumpPackVersion + '\'' +

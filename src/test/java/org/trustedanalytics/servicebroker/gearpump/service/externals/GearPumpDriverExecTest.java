@@ -82,12 +82,12 @@ public class GearPumpDriverExecTest {
         when(gearPumpOutputReportReader.fromOutput(Mockito.anyString())).thenReturn(gearPumpOutputReportReader);
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(MASTER_URL);
 
-        when(externalProcessExecutor.runWithProcessBuilder(Mockito.<String[]>any(), Mockito.anyString())).thenReturn(COMMAND_OUTPUT);
+        when(externalProcessExecutor.runWithProcessBuilder(Mockito.<String[]>any(), Mockito.anyString(), Mockito.anyString())).thenReturn(COMMAND_OUTPUT);
     }
 
     @Test
     public void spawnGearPumpOnYarnSuccess() throws IOException, ExternalProcessException {
-        GearPumpCredentials credentials = gearPumpDriverExec.spawnGearPumpOnYarn();
+        GearPumpCredentials credentials = gearPumpDriverExec.spawnGearPumpOnYarn("");
         assertThat(credentials.getYarnApplicationId(), equalTo(APPLICATION_ID));
         assertThat(credentials.getMasters(), equalTo(MASTER_URL));
     }
@@ -95,12 +95,12 @@ public class GearPumpDriverExecTest {
     @Test(expected = ExternalProcessException.class)
     public void spawnGearPumpOnYarnThrowsExternalProcessExceptionWhenMasterIsNull() throws IOException, ExternalProcessException {
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(null);
-        gearPumpDriverExec.spawnGearPumpOnYarn();
+        gearPumpDriverExec.spawnGearPumpOnYarn(null);
     }
 
     @Test(expected = ExternalProcessException.class)
     public void spawnGearPumpOnYarnThrowsExternalProcessExceptionWhenApplicationIdIsNull() throws IOException, ExternalProcessException {
         when(gearPumpCredentialsParser.getApplicationId(Mockito.anyString())).thenReturn(null);
-        gearPumpDriverExec.spawnGearPumpOnYarn();
+        gearPumpDriverExec.spawnGearPumpOnYarn(null);
     }
 }

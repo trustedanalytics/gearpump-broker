@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.google.common.base.Strings;
 
 @Service
 public class ExternalProcessExecutor {
@@ -37,23 +38,31 @@ public class ExternalProcessExecutor {
     @Autowired
     private KerberosService kerberosService;
 
+    private static final String WORKERS_NUMBER_SWITCH = "-Dgearpump.yarn.worker.containers=";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalProcessExecutor.class);
 
-    private void setEnvForProcessBuilder(Map<String, String> env) throws IOException {
-        String env_options = kerberosService.getKerberosJavaOpts();
-        if (env_options != null) {
+    private void setEnvForProcessBuilder(Map<String, String> env, String numberOfWorkers) throws IOException {
+        String env_options = Strings.nullToEmpty(kerberosService.getKerberosJavaOpts());
+
+        if(!Strings.isNullOrEmpty(numberOfWorkers)) {
+            env_options += " " + WORKERS_NUMBER_SWITCH + numberOfWorkers;
+        }
+
+        if (!env_options.isEmpty()) {
+            LOGGER.info("JAVA_OPTS: {}", env_options);
             env.put("JAVA_OPTS", env_options);
         }
     }
 
-    public String runWithProcessBuilder(String[] command, String workingDir) throws IOException, ExternalProcessException {
+    public String runWithProcessBuilder(String[] command, String workingDir, String numberOfWorkers) throws IOException, ExternalProcessException {
         String lineToRun = Arrays.asList(command).stream().collect(Collectors.joining(" "));
 
         LOGGER.info("===================");
         LOGGER.info("Command to invoke: {}", lineToRun);
 
         ProcessBuilder processBuilder = new ProcessBuilder( command );
-        setEnvForProcessBuilder(processBuilder.environment());
+        setEnvForProcessBuilder(processBuilder.environment(), numberOfWorkers);
 
         if (workingDir != null) {
             processBuilder.directory(new File(workingDir));

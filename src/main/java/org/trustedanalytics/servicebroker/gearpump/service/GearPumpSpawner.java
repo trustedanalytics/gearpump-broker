@@ -20,6 +20,9 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.trustedanalytics.servicebroker.gearpump.config.CatalogConfig;
+import org.trustedanalytics.servicebroker.gearpump.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.gearpump.config.KerberosConfig;
 import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
@@ -42,6 +45,9 @@ public class GearPumpSpawner {
     //TODO can be Autowired in future
     private final KerberosService kerberosService;
 
+    @Autowired
+    private CatalogConfig configuration;
+
     public GearPumpSpawner(GearPumpDriverExec gearPumpDriver,
                            ApplicationBrokerService applicationBrokerService,
                            YarnAppManager yarnAppManager) throws IOException, LoginException {
@@ -51,8 +57,8 @@ public class GearPumpSpawner {
         kerberosService = new KerberosService(new KerberosConfig().getKerberosProperties());
     }
 
-    private GearPumpCredentials provisionOnYarn() throws IOException, ExternalProcessException {
-        return gearPumpDriver.spawnGearPumpOnYarn();
+    private GearPumpCredentials provisionOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
+        return gearPumpDriver.spawnGearPumpOnYarn(numberOfWorkers);
     }
 
     private void provisionOnCf(GearPumpCredentials gearPumpCredentials, String spaceId, String serviceInstanceId)
@@ -75,12 +81,12 @@ public class GearPumpSpawner {
         gearPumpCredentials.setPassword(dashboardData.get("password"));
     }
 
-    public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId)
+    public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId, String planId)
             throws LoginException, IOException, DashboardServiceException, ApplicationBrokerServiceException, ExternalProcessException {
         LOGGER.info("Trying to provision gearPump for: " + serviceInstanceId);
         kerberosService.logIn();
 
-        GearPumpCredentials credentials = provisionOnYarn();
+        GearPumpCredentials credentials = provisionOnYarn(configuration.getNumberOfWorkers(planId));
         provisionOnCf(credentials, spaceId, serviceInstanceId);
 
         return credentials;

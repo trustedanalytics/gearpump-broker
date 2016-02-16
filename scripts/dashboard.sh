@@ -34,7 +34,7 @@ DEFAULT_JVM_OPTS="-server"
 
 APP_NAME="gearpump-dashboard"
 APP_BASE_NAME=`basename "$0"`
-PROG_VERSION=0.7.4
+PROG_VERSION=0.7.6
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"

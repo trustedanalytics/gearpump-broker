@@ -61,13 +61,13 @@ public class GearPumpDriverExec {
 
     private String destDir;
 
-    public GearPumpCredentials spawnGearPumpOnYarn() throws IOException, ExternalProcessException {
+    public GearPumpCredentials spawnGearPumpOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
         destDir = resourceManagerService.getRealPath(externalConfiguration.getGearPumpDestinationFolder());
         outputReportFilePath = createOutputReportFilePath(destDir);
 
         setBinariesExecutable();
         copyYarnConfigFiles(); // yarnclient ignores HADOOP_CONF_DIR. workaround is to put config files to gp/conf dir
-        String yarnClientOutput = pushGearpumpOnYarn();
+        String yarnClientOutput = pushGearpumpOnYarn(numberOfWorkers);
 
         LOGGER.info("Yarn spawn output - " + yarnClientOutput);
 
@@ -83,9 +83,9 @@ public class GearPumpDriverExec {
         return new GearPumpCredentials(mastersUrl, yarnApplicationId);
     }
 
-    private String pushGearpumpOnYarn() throws IOException, ExternalProcessException {
+    private String pushGearpumpOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
         String[] command = getGearPumpYarnCommand();
-        return runCommand(command);
+        return runCommand(command, numberOfWorkers);
     }
 
     private void setBinariesExecutable() throws IOException, ExternalProcessException {
@@ -98,9 +98,14 @@ public class GearPumpDriverExec {
         runCommand(command);
     }
 
+    private String runCommand(String[] command, String numberOfWorkers) throws IOException, ExternalProcessException {
+        LOGGER.debug("Executing command: {}", Arrays.toString(command) + "; workersNumber: " + numberOfWorkers);
+        return externalProcessExecutor.runWithProcessBuilder(command, destDir, numberOfWorkers);
+    }
+
     private String runCommand(String[] command) throws IOException, ExternalProcessException {
         LOGGER.debug("Executing command: {}", Arrays.toString(command));
-        return externalProcessExecutor.runWithProcessBuilder(command, destDir);
+        return externalProcessExecutor.runWithProcessBuilder(command, destDir, null);
     }
 
     private String createOutputReportFilePath(String gearPumpDestinationFolderPath) {

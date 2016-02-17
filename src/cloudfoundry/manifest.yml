@@ -31,3 +31,4 @@ applications:
     GEARPUMP_UI_ORG: "seedorg"
     GEARPUMP_UI_SPACE: "seedspace"
     GEARPUMP_UI_NAME: "gearpump-dashboard"
+    WORKERS_MEMORY_LIMIT: "2048"

@@ -50,6 +50,10 @@ public class ExternalConfiguration {
     @NotNull
     private String hdfsDir;
 
+    @Value("${workers.memorylimit}")
+    @NotNull
+    private String workersMemoryLimit;
+
     public String getHdfsGearPumpPackPath() {
         return String.format("%s/%s", hdfsDir, gearPumpPackName);
     };
@@ -100,6 +104,14 @@ public class ExternalConfiguration {
         return gearPumpDestinationFolder;
     }
 
+    public String getWorkersMemoryLimit() {
+        return workersMemoryLimit;
+    }
+
+    public void setWorkersMemoryLimit(String workersMemoryLimit) {
+        this.workersMemoryLimit = workersMemoryLimit;
+    }
+
     @Override
     public String toString() {
         return "ExternalConfiguration{" +
@@ -108,6 +120,7 @@ public class ExternalConfiguration {
                 ", gearPumpPackName='" + gearPumpPackName + '\'' +
                 ", gearPumpPackVersion='" + gearPumpPackVersion + '\'' +
                 ", hdfsDir='" + hdfsDir + '\'' +
+                ", workersMemoryLimit='" + workersMemoryLimit + '\'' +
                 '}';
     }
 

@@ -39,14 +39,19 @@ public class ExternalProcessExecutor {
     private KerberosService kerberosService;
 
     private static final String WORKERS_NUMBER_SWITCH = "-Dgearpump.yarn.worker.containers=";
+    private static final String WORKERS_MEMORY_LIMIT = "-Dgearpump.yarn.worker.memory=";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalProcessExecutor.class);
 
-    private void setEnvForProcessBuilder(Map<String, String> env, String numberOfWorkers) throws IOException {
+    private void setEnvForProcessBuilder(Map<String, String> env, String numberOfWorkers, String workersMemoryLimit) throws IOException {
         String env_options = Strings.nullToEmpty(kerberosService.getKerberosJavaOpts());
 
         if(!Strings.isNullOrEmpty(numberOfWorkers)) {
             env_options += " " + WORKERS_NUMBER_SWITCH + numberOfWorkers;
+        }
+
+        if(!Strings.isNullOrEmpty(workersMemoryLimit)) {
+            env_options += " " + WORKERS_MEMORY_LIMIT + workersMemoryLimit;
         }
 
         if (!env_options.isEmpty()) {
@@ -55,14 +60,14 @@ public class ExternalProcessExecutor {
         }
     }
 
-    public String runWithProcessBuilder(String[] command, String workingDir, String numberOfWorkers) throws IOException, ExternalProcessException {
+    public String runWithProcessBuilder(String[] command, String workingDir, String numberOfWorkers, String workersMemoryLimit) throws IOException, ExternalProcessException {
         String lineToRun = Arrays.asList(command).stream().collect(Collectors.joining(" "));
 
         LOGGER.info("===================");
         LOGGER.info("Command to invoke: {}", lineToRun);
 
         ProcessBuilder processBuilder = new ProcessBuilder( command );
-        setEnvForProcessBuilder(processBuilder.environment(), numberOfWorkers);
+        setEnvForProcessBuilder(processBuilder.environment(), numberOfWorkers, workersMemoryLimit);
 
         if (workingDir != null) {
             processBuilder.directory(new File(workingDir));

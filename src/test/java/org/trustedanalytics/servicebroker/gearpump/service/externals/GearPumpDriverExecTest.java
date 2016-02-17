@@ -82,7 +82,8 @@ public class GearPumpDriverExecTest {
         when(gearPumpOutputReportReader.fromOutput(Mockito.anyString())).thenReturn(gearPumpOutputReportReader);
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(MASTER_URL);
 
-        when(externalProcessExecutor.runWithProcessBuilder(Mockito.<String[]>any(), Mockito.anyString(), Mockito.anyString())).thenReturn(COMMAND_OUTPUT);
+        when(externalProcessExecutor.runWithProcessBuilder(Mockito.<String[]>any(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString())).thenReturn(COMMAND_OUTPUT);
     }
 
     @Test

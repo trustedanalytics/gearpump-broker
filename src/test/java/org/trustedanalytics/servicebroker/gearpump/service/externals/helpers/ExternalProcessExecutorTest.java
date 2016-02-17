@@ -68,7 +68,7 @@ public class ExternalProcessExecutorTest extends TestCase {
         String expectedOutput = "hello world";
 
         String[] cmd = {"echo", expectedOutput};
-        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, null);
+        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, null, null);
 
         assertThat(output.trim(), equalTo(expectedOutput.trim()));
     }
@@ -79,7 +79,7 @@ public class ExternalProcessExecutorTest extends TestCase {
             return;
         }
         String[] cmd = {"alamakota"};
-        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, null);
+        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, null, null);
 
         assertThat(output,  is(nullValue()));
 

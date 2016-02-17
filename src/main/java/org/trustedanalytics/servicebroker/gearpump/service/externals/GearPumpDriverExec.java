@@ -100,12 +100,12 @@ public class GearPumpDriverExec {
 
     private String runCommand(String[] command, String numberOfWorkers) throws IOException, ExternalProcessException {
         LOGGER.debug("Executing command: {}", Arrays.toString(command) + "; workersNumber: " + numberOfWorkers);
-        return externalProcessExecutor.runWithProcessBuilder(command, destDir, numberOfWorkers);
+        return externalProcessExecutor.runWithProcessBuilder(command, destDir, numberOfWorkers, externalConfiguration.getWorkersMemoryLimit());
     }
 
     private String runCommand(String[] command) throws IOException, ExternalProcessException {
         LOGGER.debug("Executing command: {}", Arrays.toString(command));
-        return externalProcessExecutor.runWithProcessBuilder(command, destDir, null);
+        return externalProcessExecutor.runWithProcessBuilder(command, destDir, null, externalConfiguration.getWorkersMemoryLimit());
     }
 
     private String createOutputReportFilePath(String gearPumpDestinationFolderPath) {

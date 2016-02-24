@@ -19,7 +19,6 @@ applications:
     GEARPUMP_URI: "placeholder"
     GEARPUMP_PACK_VERSION: "2.11-0.7.6"
     HDFS_DIR: /user/gearpump
-    IMAGE_URL: "placeholder"
     VERSION: ${version}
     TAGS: gearpump
     JAVA_HOME: /home/vcap/app/.java-buildpack/open_jdk_jre/

@@ -24,8 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 import org.trustedanalytics.servicebroker.gearpump.config.CfCallerConfiguration;
@@ -174,8 +176,17 @@ public class ApplicationBrokerService {
     }
 
     public void deleteUIServiceInstance(String uiServiceGuid) {
-        LOGGER.info("UI Service with GUID " + uiServiceGuid + " will be deleted");
-        execute(DELETE_SERVICE_URL, HttpMethod.DELETE, "", apiEndpoint, uiServiceGuid);
+        try {
+            execute(DELETE_SERVICE_URL, HttpMethod.DELETE, "", apiEndpoint, uiServiceGuid);
+        }
+        catch (HttpClientErrorException e) {
+            if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+                LOGGER.info("Cannot delete GearPump UI instance with GUID " + uiServiceGuid + " - it doesn't exist");
+            }
+            else {
+                throw e;
+            }
+        }
     }
 
     public Map<String, String> deployUI(String uiInstanceName, String username, String password, String gearpumpMaster, String spaceId)

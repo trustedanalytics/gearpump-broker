@@ -51,7 +51,7 @@ public class YarnAppManager {
         } catch (ApplicationNotFoundException anfe) {
             LOGGER.warn("Haven't found application {}. Assuming it was removed manually.", applicationId);
         } catch (IOException e) {
-            throw new YarnException("Yarn error during application removal.", e);
+            throw new YarnException("YARN error during application removal.", e);
         }
     }
 

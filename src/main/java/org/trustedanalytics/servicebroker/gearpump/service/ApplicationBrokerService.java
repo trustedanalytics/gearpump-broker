@@ -178,12 +178,11 @@ public class ApplicationBrokerService {
     public void deleteUIServiceInstance(String uiServiceGuid) {
         try {
             execute(DELETE_SERVICE_URL, HttpMethod.DELETE, "", apiEndpoint, uiServiceGuid);
-        }
-        catch (HttpClientErrorException e) {
+        } catch (HttpClientErrorException e) {
             if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
-                LOGGER.info("Cannot delete GearPump UI instance with GUID " + uiServiceGuid + " - it doesn't exist");
-            }
-            else {
+                LOGGER.warn("GearPump UI instance with GUID {} doesn't exist. Skipping.", uiServiceGuid);
+            } else {
+                LOGGER.debug("Cannot delete GearPump UI instance with GUID {} - rethrowing excepiton.", uiServiceGuid);
                 throw e;
             }
         }

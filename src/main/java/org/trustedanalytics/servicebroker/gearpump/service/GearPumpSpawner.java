@@ -16,6 +16,7 @@
 
 package org.trustedanalytics.servicebroker.gearpump.service;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.slf4j.Logger;
@@ -81,22 +82,40 @@ public class GearPumpSpawner {
         gearPumpCredentials.setPassword(dashboardData.get("password"));
     }
 
+    private void cleanUp(GearPumpCredentials gearPumpCredentials) {
+        LOGGER.info("cleanUp [" + gearPumpCredentials + "]");
+        if ( !(gearPumpCredentials != null && Strings.isNullOrEmpty(gearPumpCredentials.getYarnApplicationId()))) {
+            LOGGER.debug("Found yarnApplicationId {}", gearPumpCredentials.getYarnApplicationId());
+            try {
+                yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
+                LOGGER.debug("killApplication finished");
+            } catch (YarnException e) {
+                LOGGER.warn("YARN problem while cleaning up.", e);
+            }
+        }
+    }
+
     public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId, String planId)
             throws LoginException, IOException, DashboardServiceException, ApplicationBrokerServiceException, ExternalProcessException {
         LOGGER.info("Trying to provision gearPump for: " + serviceInstanceId);
         kerberosService.logIn();
 
-        GearPumpCredentials credentials = provisionOnYarn(configuration.getNumberOfWorkers(planId));
-        provisionOnCf(credentials, spaceId, serviceInstanceId);
+        GearPumpCredentials credentials = null;
+        try {
+            credentials = provisionOnYarn(configuration.getNumberOfWorkers(planId));
+            provisionOnCf(credentials, spaceId, serviceInstanceId);
+        } catch (Exception e) {
+            cleanUp(credentials);
+        }
 
         return credentials;
     }
 
-    public void deprovisionInstance(GearPumpCredentials gearpumpCredentials) throws YarnException {
-        yarnAppManager.killApplication(gearpumpCredentials.getYarnApplicationId());
-        LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearpumpCredentials.getYarnApplicationId());
+    public void deprovisionInstance(GearPumpCredentials gearPumpCredentials) throws YarnException {
+        yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
+        LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
 
-        applicationBrokerService.deleteUIServiceInstance(gearpumpCredentials.getDashboardGuid());
+        applicationBrokerService.deleteUIServiceInstance(gearPumpCredentials.getDashboardGuid());
     }
 
     private String errorMsg(String serviceInstanceId) {

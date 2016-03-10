@@ -106,6 +106,7 @@ public class GearPumpSpawner {
             provisionOnCf(credentials, spaceId, serviceInstanceId);
         } catch (Exception e) {
             cleanUp(credentials);
+            throw e;
         }
 
         return credentials;

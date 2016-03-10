@@ -27,18 +27,23 @@ public class GearPumpCredentialsParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(GearPumpCredentialsParser.class);
 
     private static final Pattern APPLICATION_ID_PATTERN = Pattern.compile("Submitted application (\\S*)");
-    private static final Pattern MASTERS_PATTERN = Pattern.compile("masters=(.*?)$");
+    private static final Pattern CREATED_APPLICATION_ID_PATTERN = Pattern.compile("Create application, appId: (\\S*)");
 
     /**
      *
      * @param output expects yarnclient output
      */
-    public String getMasterUrl(String output) {
-        LOGGER.info("getMasterUrl");
+    public String getApplicationId(String output) {
+        LOGGER.info("getApplicationId");
         String result = null;
-        Matcher m = MASTERS_PATTERN.matcher(output);
+        Matcher m = CREATED_APPLICATION_ID_PATTERN.matcher(output);
+        LOGGER.debug("m {}", m);
         if (m.find()) {
+            LOGGER.info("FOUND {}", m.groupCount());
+
             result = m.group(1);
+        } else {
+            LOGGER.info("NOT FOUND {}");
         }
         return result;
     }
@@ -47,8 +52,8 @@ public class GearPumpCredentialsParser {
      *
      * @param output expects yarnclient output
      */
-    public String getApplicationId(String output) {
-        LOGGER.info("getApplicationId");
+    public String getRunningApplicationId(String output) {
+        LOGGER.info("getRunningApplicationId");
         String result = null;
         Matcher m = APPLICATION_ID_PATTERN.matcher(output);
         LOGGER.debug("m {}", m);

@@ -56,10 +56,11 @@ public class CatalogConfig {
     @Bean
     public Catalog catalog() {
         return new Catalog(Arrays.asList(new ServiceDefinition(getCfServiceId(), getCfServiceName(),
-                "A simple gearpump broker", true, true, getGearPumpPlans(), Arrays.asList("data-science-tool"), getServiceDefinitionMetadata(), Arrays.asList(SYSLOG_DRAIN), null)));
+                "Modern big data real-time streaming engine", true, true, getGearPumpPlans(),
+                Arrays.asList("data-science-tool"), getServiceDefinitionMetadata(), Arrays.asList(SYSLOG_DRAIN), null)));
     }
 
-    public String getNumberOfWorkers(String planId){
+    public String getNumberOfWorkers(String planId) {
         return planId.replace(getCfBaseId() + "-workers-", "");
     }
 

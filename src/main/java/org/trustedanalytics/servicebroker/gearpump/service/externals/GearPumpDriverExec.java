@@ -67,9 +67,7 @@ public class GearPumpDriverExec {
 
         setBinariesExecutable();
         copyYarnConfigFiles(); // yarnclient ignores HADOOP_CONF_DIR. workaround is to put config files to gp/conf dir
-        String yarnClientOutput = pushGearpumpOnYarn(numberOfWorkers);
-
-        LOGGER.info("Yarn spawn output - " + yarnClientOutput);
+        String yarnClientOutput = deployGearPumpOnYarn(numberOfWorkers);
 
         String mastersUrl = gearPumpOutputReportReader.fromOutput(outputReportFilePath).getMasterUrl();
         String yarnApplicationId = gearPumpCredentialsParser.getApplicationId(yarnClientOutput);
@@ -83,7 +81,7 @@ public class GearPumpDriverExec {
         return new GearPumpCredentials(mastersUrl, yarnApplicationId);
     }
 
-    private String pushGearpumpOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
+    private String deployGearPumpOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
         String[] command = getGearPumpYarnCommand();
         return runCommand(command, numberOfWorkers);
     }
@@ -99,7 +97,7 @@ public class GearPumpDriverExec {
     }
 
     private String runCommand(String[] command, String numberOfWorkers) throws IOException, ExternalProcessException {
-        LOGGER.debug("Executing command: {}", Arrays.toString(command) + "; workersNumber: " + numberOfWorkers);
+        LOGGER.debug("Executing command: {} ; workersNumber: {}", Arrays.toString(command), numberOfWorkers);
         return externalProcessExecutor.runWithProcessBuilder(command, destDir, numberOfWorkers, externalConfiguration.getWorkersMemoryLimit());
     }
 

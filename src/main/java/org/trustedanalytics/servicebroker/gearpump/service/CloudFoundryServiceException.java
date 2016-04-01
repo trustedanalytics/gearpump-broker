@@ -16,16 +16,16 @@
 
 package org.trustedanalytics.servicebroker.gearpump.service;
 
-public class ApplicationBrokerServiceException extends Exception {
-    public ApplicationBrokerServiceException() {
+public class CloudFoundryServiceException extends Exception {
+    public CloudFoundryServiceException() {
         super();
     }
 
-    public ApplicationBrokerServiceException(String message) {
+    public CloudFoundryServiceException(String message) {
         super(message);
     }
 
-    public ApplicationBrokerServiceException(String message, Throwable cause) {
+    public CloudFoundryServiceException(String message, Throwable cause) {
         super(message, cause);
     }
 }

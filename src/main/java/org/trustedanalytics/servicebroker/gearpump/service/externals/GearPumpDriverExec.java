@@ -30,6 +30,8 @@ import org.trustedanalytics.servicebroker.gearpump.service.file.ResourceManagerS
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GearPumpDriverExec {
     private static final Logger LOGGER = LoggerFactory.getLogger(GearPumpDriverExec.class);
@@ -61,13 +63,13 @@ public class GearPumpDriverExec {
 
     private String destDir;
 
-    public GearPumpCredentials spawnGearPumpOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
+    public GearPumpCredentials spawnGearPumpOnYarn(Map<String, String> arguments) throws IOException, ExternalProcessException {
         destDir = resourceManagerService.getRealPath(externalConfiguration.getGearPumpDestinationFolder());
         outputReportFilePath = createOutputReportFilePath(destDir);
 
         setBinariesExecutable();
         copyYarnConfigFiles(); // yarnclient ignores HADOOP_CONF_DIR. workaround is to put config files to gp/conf dir
-        String yarnClientOutput = deployGearPumpOnYarn(numberOfWorkers);
+        String yarnClientOutput = deployGearPumpOnYarn(arguments);
 
         String mastersUrl = gearPumpOutputReportReader.fromOutput(outputReportFilePath).getMasterUrl();
         String yarnApplicationId = gearPumpCredentialsParser.getApplicationId(yarnClientOutput);
@@ -81,9 +83,9 @@ public class GearPumpDriverExec {
         return new GearPumpCredentials(mastersUrl, yarnApplicationId);
     }
 
-    private String deployGearPumpOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
+    private String deployGearPumpOnYarn(Map<String, String> arguments) throws IOException, ExternalProcessException {
         String[] command = getGearPumpYarnCommand();
-        return runCommand(command, numberOfWorkers);
+        return runCommand(command, arguments);
     }
 
     private void setBinariesExecutable() throws IOException, ExternalProcessException {
@@ -96,14 +98,14 @@ public class GearPumpDriverExec {
         runCommand(command);
     }
 
-    private String runCommand(String[] command, String numberOfWorkers) throws IOException, ExternalProcessException {
-        LOGGER.debug("Executing command: {} ; workersNumber: {}", Arrays.toString(command), numberOfWorkers);
-        return externalProcessExecutor.runWithProcessBuilder(command, destDir, numberOfWorkers, externalConfiguration.getWorkersMemoryLimit());
+    private String runCommand(String[] command, Map<String, String> arguments) throws IOException, ExternalProcessException {
+        LOGGER.debug("Executing command: {} ; arguments: {}", Arrays.toString(command), arguments);
+        arguments.put("workersMemoryLimit", externalConfiguration.getWorkersMemoryLimit());
+        return externalProcessExecutor.runWithProcessBuilder(command, destDir, arguments);
     }
 
     private String runCommand(String[] command) throws IOException, ExternalProcessException {
-        LOGGER.debug("Executing command: {}", Arrays.toString(command));
-        return externalProcessExecutor.runWithProcessBuilder(command, destDir, null, externalConfiguration.getWorkersMemoryLimit());
+        return runCommand(command, new HashMap<>());
     }
 
     private String createOutputReportFilePath(String gearPumpDestinationFolderPath) {

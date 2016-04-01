@@ -19,7 +19,7 @@ package org.trustedanalytics.servicebroker.gearpump.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.trustedanalytics.cfbroker.store.zookeeper.service.ZookeeperClient;
-import org.trustedanalytics.servicebroker.gearpump.service.ApplicationBrokerService;
+import org.trustedanalytics.servicebroker.gearpump.service.CloudFoundryService;
 import org.trustedanalytics.servicebroker.gearpump.service.CredentialPersistorService;
 import org.trustedanalytics.servicebroker.gearpump.service.GearPumpSpawner;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.GearPumpCredentialsParser;
@@ -34,9 +34,9 @@ public class GearPumpSpawnerConfig {
 
     @Bean
     public GearPumpSpawner getGearPumpSpawner(GearPumpDriverExec gearPumpDriver,
-                                              ApplicationBrokerService applicationBrokerService,
+                                              CloudFoundryService cloudFoundryService,
                                               YarnAppManager yarnAppManager) throws IOException, LoginException {
-        return new GearPumpSpawner(gearPumpDriver, applicationBrokerService, yarnAppManager);
+        return new GearPumpSpawner(gearPumpDriver, cloudFoundryService, yarnAppManager);
     }
 
     @Bean

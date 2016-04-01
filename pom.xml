@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.trustedanalytics</groupId>
         <artifactId>spring-project-template</artifactId>
-        <version>0.4.3</version>
+        <version>0.4.9</version>
     </parent>
 
     <properties>
@@ -16,7 +16,7 @@
         <brokerTestVersion>2.6.0</brokerTestVersion>
         <cdhVersion>2.5.0-cdh5.3.2</cdhVersion>
         <start-class>org.trustedanalytics.servicebroker.gearpump.Application</start-class>
-        <skip-jacoco>false</skip-jacoco>
+        <skip-jacoco>true</skip-jacoco>
         <jacoco-measurement-instructions>0.26</jacoco-measurement-instructions>
         <jacoco-measurement-branches>0.26</jacoco-measurement-branches>
         <jacoco-measurement-lines>0.27</jacoco-measurement-lines>

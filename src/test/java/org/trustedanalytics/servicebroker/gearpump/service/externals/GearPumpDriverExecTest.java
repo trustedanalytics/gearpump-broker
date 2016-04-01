@@ -31,6 +31,7 @@ import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.Hdf
 import org.trustedanalytics.servicebroker.gearpump.service.file.ResourceManagerService;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -83,12 +84,12 @@ public class GearPumpDriverExecTest {
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(MASTER_URL);
 
         when(externalProcessExecutor.runWithProcessBuilder(Mockito.<String[]>any(), Mockito.anyString(),
-                Mockito.anyString(), Mockito.anyString())).thenReturn(COMMAND_OUTPUT);
+                Mockito.anyMapOf(String.class, String.class))).thenReturn(COMMAND_OUTPUT);
     }
 
     @Test
     public void spawnGearPumpOnYarnSuccess() throws IOException, ExternalProcessException {
-        GearPumpCredentials credentials = gearPumpDriverExec.spawnGearPumpOnYarn("");
+        GearPumpCredentials credentials = gearPumpDriverExec.spawnGearPumpOnYarn(new HashMap<>());
         assertThat(credentials.getYarnApplicationId(), equalTo(APPLICATION_ID));
         assertThat(credentials.getMasters(), equalTo(MASTER_URL));
     }
@@ -96,12 +97,12 @@ public class GearPumpDriverExecTest {
     @Test(expected = ExternalProcessException.class)
     public void spawnGearPumpOnYarnThrowsExternalProcessExceptionWhenMasterIsNull() throws IOException, ExternalProcessException {
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(null);
-        gearPumpDriverExec.spawnGearPumpOnYarn(null);
+        gearPumpDriverExec.spawnGearPumpOnYarn(new HashMap<>());
     }
 
     @Test(expected = ExternalProcessException.class)
     public void spawnGearPumpOnYarnThrowsExternalProcessExceptionWhenApplicationIdIsNull() throws IOException, ExternalProcessException {
         when(gearPumpCredentialsParser.getApplicationId(Mockito.anyString())).thenReturn(null);
-        gearPumpDriverExec.spawnGearPumpOnYarn(null);
+        gearPumpDriverExec.spawnGearPumpOnYarn(new HashMap<>());
     }
 }

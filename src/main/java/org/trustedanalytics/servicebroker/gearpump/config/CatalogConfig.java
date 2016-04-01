@@ -61,7 +61,7 @@ public class CatalogConfig {
     }
 
     public String getNumberOfWorkers(String planId) {
-        return planId.replace(getCfBaseId() + "-workers-", "");
+        return planId.replaceAll("(.*)-workers-", "");
     }
 
     private List<Plan> getGearPumpPlans() {

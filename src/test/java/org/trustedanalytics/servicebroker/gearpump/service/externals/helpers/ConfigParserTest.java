@@ -114,5 +114,6 @@ public class ConfigParserTest extends TestCase {
         String verifyContent = new String(Files.readAllBytes(testFilePath), StandardCharsets.UTF_8);
         assertTrue("File replacement haven't succeed.", verifyContent.contains("2"));
         assertFalse("File replacement haven't succeed.", verifyContent.contains("1"));
+        Files.delete(testFilePath);
     }
 }

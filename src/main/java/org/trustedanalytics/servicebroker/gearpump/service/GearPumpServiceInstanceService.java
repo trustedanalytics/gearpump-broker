@@ -54,10 +54,10 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
         String planId = request.getPlanId();
         LOGGER.debug("GearPump service instance guid: {}; Space id: {}; Org id: {}; Plan id: {}", instanceId, spaceId, orgId, planId);
 
-        GearPumpCredentials gearPumpCredentials = null;
+        GearPumpCredentials gearPumpCredentials;
 
         try {
-            gearPumpCredentials = gearPumpSpawner.provisionInstance(instanceId, spaceId, planId);
+            gearPumpCredentials = gearPumpSpawner.provisionInstance(instanceId, spaceId, orgId, planId);
             LOGGER.info("GearPump instance has been spawned");
         } catch (Exception e) {
             LOGGER.error("Couldn't spawn GearPump instance", e);

@@ -42,8 +42,12 @@ public final class CfCaller {
         return new HttpEntity<String>(createJsonHeaders());
     }
 
-    public  HttpEntity<String> createJsonRequest(String body) {
-        return new HttpEntity<String>(body, createJsonHeaders());
+    public HttpEntity<String> createJsonRequest(HttpHeaders headers) {
+        return new HttpEntity<String>(headers == null ? createJsonHeaders() : headers);
+    }
+
+    public  HttpEntity<String> createJsonRequest(String body, HttpHeaders headers) {
+        return new HttpEntity<String>(body, headers == null ? createJsonHeaders() : headers);
     }
 
     public HttpHeaders createJsonHeaders() {

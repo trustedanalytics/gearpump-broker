@@ -145,9 +145,6 @@ eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $DASHBOARD_OPTS
 ###########################
 # Prepare config file
 
-# change the port
-sed -i "s/8090/${PORT}/g" $APP_HOME/lib/gear.conf
-
 # check if USERNAME and PASSWORD are set
 if [ -z "$USERNAME" ] ; then
     die "ERROR: USERNAME not set. Cannot configure security!"
@@ -159,15 +156,20 @@ fi
 # generate digest for user's password
 DIGEST=$(exec "$JAVACMD" -classpath "$CLASSPATH" io.gearpump.security.PasswordUtil -password $PASSWORD | tail -1)
 
-toFind="\"admin\""
-toReplace="\"$USERNAME\""
-echo "$toFind -> $toReplace"
-sed -i "s/$toFind/$toReplace/" $APP_HOME/lib/gear.conf
+# replace config variables
+toFind=("\"admin\"" "\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\"" "<your client id registered on UAA>" "<your client secret registered on UAA>" "http://<cloud foundry login endpoint>" "http://<cloud foundry api endpoint>" "<organization-guid>" "127.0.0.1:8090/login/oauth2/cloudfoundryuaa/callback")
+toReplace=("\"$USERNAME\"" "\"$DIGEST\"" $UAA_CLIENT_ID $UAA_CLIENT_SECRET $UAA_HOST $CF_API_ENDPOINT $ORG_ID "${CALLBACK}/login/oauth2/cloudfoundryuaa/callback")
 
-toFind="\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\""
-toReplace="\"$DIGEST\""
-echo "$toFind -> $toReplace"
-sed -i "s|$toFind|$toReplace|" $APP_HOME/lib/gear.conf
+i=0
+for index in "${toFind[@]}"
+do
+    echo "${index} -> ${toReplace[i]}"
+    sed -i -e "s|${index}|${toReplace[i]}|g" $APP_HOME/lib/gear.conf
+    i=$((i+1))
+done
+
+# change the port
+sed -i "s/8090/${PORT}/g" $APP_HOME/lib/gear.conf
 
 # enable authentication
 sed -i "s/authentication-enabled = false/authentication-enabled = true/" $APP_HOME/lib/gear.conf

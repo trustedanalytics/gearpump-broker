@@ -27,12 +27,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,7 +69,7 @@ public class ExternalProcessExecutorTest extends TestCase {
         String expectedOutput = "hello world";
 
         String[] cmd = {"echo", expectedOutput};
-        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, null, null);
+        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, new HashMap<>());
 
         assertThat(output.trim(), equalTo(expectedOutput.trim()));
     }
@@ -79,9 +80,9 @@ public class ExternalProcessExecutorTest extends TestCase {
             return;
         }
         String[] cmd = {"alamakota"};
-        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, null, null);
+        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, new HashMap<>());
 
-        assertThat(output,  is(nullValue()));
+        assertThat(output, is(nullValue()));
 
     }
 }

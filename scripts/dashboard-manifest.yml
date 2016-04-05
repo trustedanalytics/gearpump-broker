@@ -6,6 +6,6 @@ applications:
   instances: 1
   host: gearpump-dashboard
   path: target/gearpump-dashboard.zip
-env:
-  GEARPUMP_MASTER: localhost:9999
-  VERSION: 0.6.2
+  env:
+    GEARPUMP_MASTER: localhost:9999
+    VERSION: 0.6.4

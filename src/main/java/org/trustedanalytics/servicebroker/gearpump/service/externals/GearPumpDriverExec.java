@@ -21,15 +21,15 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.trustedanalytics.servicebroker.gearpump.config.ExternalConfiguration;
+import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ExternalProcessExecutor;
+import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ExternalProcessExecutorResult;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.HdfsUtils;
 import org.trustedanalytics.servicebroker.gearpump.service.file.ResourceManagerService;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,8 +37,8 @@ public class GearPumpDriverExec {
     private static final Logger LOGGER = LoggerFactory.getLogger(GearPumpDriverExec.class);
 
     private static final String COMMAND_LINE_TEMPLATE_SPAWN = "bin/yarnclient launch -package %s -output %s";
-
-    private String outputReportFilePath;
+    private static final String WORKERS_NUMBER_SWITCH = "-Dgearpump.yarn.worker.containers=";
+    private static final String WORKERS_MEMORY_LIMIT  = "-Dgearpump.yarn.worker.memory=";
 
     @Autowired
     private GearPumpCredentialsParser gearPumpCredentialsParser;
@@ -58,62 +58,88 @@ public class GearPumpDriverExec {
     @Autowired
     private ExternalProcessExecutor externalProcessExecutor;
 
-    @Value("${yarn.conf.dir}")
-    private String yarnConfDir;
+    @Autowired
+    private KerberosService kerberosService;
 
     private String destDir;
 
-    public GearPumpCredentials spawnGearPumpOnYarn(Map<String, String> arguments) throws IOException, ExternalProcessException {
+    public SpawnResult spawnGearPumpOnYarn(String numberOfWorkers) throws IOException {
+        LOGGER.info("spawnGearPumpOnYarn numberOfWorkers = [" + numberOfWorkers + "]");
+
         destDir = resourceManagerService.getRealPath(externalConfiguration.getGearPumpDestinationFolder());
-        outputReportFilePath = createOutputReportFilePath(destDir);
 
-        setBinariesExecutable();
-        copyYarnConfigFiles(); // yarnclient ignores HADOOP_CONF_DIR. workaround is to put config files to gp/conf dir
-        String yarnClientOutput = deployGearPumpOnYarn(arguments);
+        String outputReportFilePath = createOutputReportFilePath(destDir);
 
-        String mastersUrl = gearPumpOutputReportReader.fromOutput(outputReportFilePath).getMasterUrl();
-        String yarnApplicationId = gearPumpCredentialsParser.getApplicationId(yarnClientOutput);
+        String yarnApplicationId = null;
+        String mastersUrl = null;
+        Exception resultException = null;
 
-        if (Strings.isNullOrEmpty(mastersUrl) || Strings.isNullOrEmpty(yarnApplicationId)) {
-            throw new ExternalProcessException("Couldn't obtain yarn credentials.");
+        ExternalProcessExecutorResult processExecutorResult = deployGearPumpOnYarn(outputReportFilePath, numberOfWorkers);
+        LOGGER.debug("processExecutorResult: {}", processExecutorResult);
+
+        // try to determine appId regardless of the result (if failed, we still need appId to kill the app on yarn)
+        if (!Strings.isNullOrEmpty(processExecutorResult.getOutput())) {
+            yarnApplicationId = gearPumpCredentialsParser.getApplicationId(processExecutorResult.getOutput());
         }
 
-        gearPumpOutputReportReader.deleteReportFile();
+        // obtain mastersUrl
+        if (processExecutorResult.getExitCode() == 0) {
+            try {
+                mastersUrl = gearPumpOutputReportReader.fromOutput(outputReportFilePath).getMasterUrl();
+            } catch (GearpumpOutputException e) {
+                LOGGER.warn("GearpumpOutputException {}", e.getMessage());
+            }
+        }
 
-        return new GearPumpCredentials(mastersUrl, yarnApplicationId);
+        // clean report file before exiting
+        gearPumpOutputReportReader.fromOutput(outputReportFilePath).deleteReportFile();
+
+        if (processExecutorResult.getExitCode() != 0) {
+            resultException = new ExternalProcessException("Error executing yarnclient.", processExecutorResult.getException());
+        }
+
+        // make additional check for credentials
+        if (resultException == null && (Strings.isNullOrEmpty(mastersUrl) || Strings.isNullOrEmpty(yarnApplicationId))) {
+            resultException = new ExternalProcessException("Couldn't obtain yarn credentials.");
+        }
+
+        int status = resultException == null ? SpawnResult.STATUS_OK : SpawnResult.STATUS_ERR;
+
+        return new SpawnResult(status, new GearPumpCredentials(mastersUrl, yarnApplicationId), resultException);
     }
 
-    private String deployGearPumpOnYarn(Map<String, String> arguments) throws IOException, ExternalProcessException {
-        String[] command = getGearPumpYarnCommand();
-        return runCommand(command, arguments);
+    private ExternalProcessExecutorResult deployGearPumpOnYarn(String outputReportFilePath, String numberOfWorkers) {
+        String[] command = getGearPumpYarnCommand(outputReportFilePath);
+        Map<String, String> envProperties = getEnvForProcessBuilder(numberOfWorkers, externalConfiguration.getWorkersMemoryLimit());
+        return externalProcessExecutor.run(command, destDir, envProperties);
     }
 
-    private void setBinariesExecutable() throws IOException, ExternalProcessException {
-        String[] command = new String[]{"chmod", "-R", "+x", "bin"};
-        runCommand(command);
-    }
-
-    private void copyYarnConfigFiles() throws IOException, ExternalProcessException {
-        String[] command = new String[]{"cp", "-R", String.format("%s/.", yarnConfDir), String.format("%s/conf/", destDir)};
-        runCommand(command);
-    }
-
-    private String runCommand(String[] command, Map<String, String> arguments) throws IOException, ExternalProcessException {
-        LOGGER.debug("Executing command: {} ; arguments: {}", Arrays.toString(command), arguments);
-        arguments.put("workersMemoryLimit", externalConfiguration.getWorkersMemoryLimit());
-        return externalProcessExecutor.runWithProcessBuilder(command, destDir, arguments);
-    }
-
-    private String runCommand(String[] command) throws IOException, ExternalProcessException {
-        return runCommand(command, new HashMap<>());
+    private String[] getGearPumpYarnCommand(String outputReportFilePath) {
+        String gearpumpPackUri = hdfsUtils.getHdfsUri() + externalConfiguration.getHdfsGearPumpPackPath();
+        return String.format(COMMAND_LINE_TEMPLATE_SPAWN, gearpumpPackUri, outputReportFilePath).split(" ");
     }
 
     private String createOutputReportFilePath(String gearPumpDestinationFolderPath) {
         return String.format("%s/output-%d-%s.conf", gearPumpDestinationFolderPath, System.currentTimeMillis(), RandomStringUtils.randomNumeric(4));
     }
 
-    private String[] getGearPumpYarnCommand() {
-        String gearpumpPackUri = hdfsUtils.getHdfsUri() + externalConfiguration.getHdfsGearPumpPackPath();
-        return String.format(COMMAND_LINE_TEMPLATE_SPAWN, gearpumpPackUri, outputReportFilePath).split(" ");
+    private Map<String, String> getEnvForProcessBuilder(String numberOfWorkers, String workersMemoryLimit)  {
+        Map<String, String> result = new HashMap<>();
+
+        String env_options = Strings.nullToEmpty(kerberosService.getKerberosJavaOpts());
+
+        if(!Strings.isNullOrEmpty(numberOfWorkers)) {
+            env_options += " " + WORKERS_NUMBER_SWITCH + numberOfWorkers;
+        }
+
+        if(!Strings.isNullOrEmpty(workersMemoryLimit)) {
+            env_options += " " + WORKERS_MEMORY_LIMIT + workersMemoryLimit;
+        }
+
+        if (!env_options.isEmpty()) {
+            LOGGER.info("JAVA_OPTS: {}", env_options);
+            result.put("JAVA_OPTS", env_options);
+        }
+        return result;
     }
 }

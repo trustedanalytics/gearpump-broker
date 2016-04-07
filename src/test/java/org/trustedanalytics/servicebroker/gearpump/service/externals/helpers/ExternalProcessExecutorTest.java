@@ -21,20 +21,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
+import org.trustedanalytics.servicebroker.gearpump.service.externals.ExternalProcessException;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExternalProcessExecutorTest extends TestCase {
@@ -43,21 +39,11 @@ public class ExternalProcessExecutorTest extends TestCase {
     @InjectMocks
     private ExternalProcessExecutor externalProcessExecutor;
 
-    @Mock
-    private KerberosService kerberosService;
-
-    private static String EMPTY_ENV="JAVA_OPTS=";
-
     @Before
     public void init() throws IOException {
         this.system = System.getProperty("os.name");
         externalProcessExecutor = new ExternalProcessExecutor();
         MockitoAnnotations.initMocks(this);
-        mockEnvBuilder();
-    }
-
-    private void mockEnvBuilder() throws IOException {
-        when(kerberosService.getKerberosJavaOpts()).thenReturn(EMPTY_ENV);
     }
 
     @Test
@@ -69,20 +55,20 @@ public class ExternalProcessExecutorTest extends TestCase {
         String expectedOutput = "hello world";
 
         String[] cmd = {"echo", expectedOutput};
-        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, new HashMap<>());
+        String output = externalProcessExecutor.runCommand(cmd, null, null);
 
         assertThat(output.trim(), equalTo(expectedOutput.trim()));
     }
 
-    @Test(expected=IOException.class)
+    @Test(expected=ExternalProcessException.class)
     public void testRunCommandShouldFail() throws Exception {
         if (system.startsWith("Win")) {
             return;
         }
         String[] cmd = {"alamakota"};
-        String output = externalProcessExecutor.runWithProcessBuilder(cmd, null, new HashMap<>());
+        String output = externalProcessExecutor.runCommand(cmd, null, null);
 
-        assertThat(output, is(nullValue()));
+        assertThat(output,  is(nullValue()));
 
     }
 }

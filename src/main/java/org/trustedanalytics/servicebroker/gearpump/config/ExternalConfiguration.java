@@ -56,7 +56,7 @@ public class ExternalConfiguration {
 
     public String getHdfsGearPumpPackPath() {
         return String.format("%s/%s", hdfsDir, gearPumpPackName);
-    };
+    }
 
     //>-- spawning related
 

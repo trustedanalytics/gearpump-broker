@@ -25,15 +25,17 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.servicebroker.gearpump.config.ExternalConfiguration;
+import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ExternalProcessExecutor;
+import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ExternalProcessExecutorResult;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.HdfsUtils;
 import org.trustedanalytics.servicebroker.gearpump.service.file.ResourceManagerService;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -46,7 +48,11 @@ public class GearPumpDriverExecTest {
     private static final String HDFS_URI = "hdfs://nameservice1/org/intel/hdfsbroker/userspace/18159a56-de7a-4987-8fa1-4dd65416568e/user/gearpump";
     private static final String DESTINATION_FOLDER = "gearpump-0.7.4";
     private static final String MASTER_URL = "http://cdh-worker-0.node.trustedanalytics.consul:44965";
-    private static final String COMMAND_OUTPUT = "";
+    private static final String COMMAND_OUTPUT = "16/02/17 14:28:41 INFO YarnClient: Create application, appId: application_1456149538698_0014"+
+            "16/02/17 14:28:41 INFO LaunchCluster: Uploading configuration files to remote HDFS(under hdfs://nameservice1/user/cf/.gearpump_application_1455719081911_0003/conf/)...\n"+
+            "16/02/17 14:28:42 INFO YarnClient: Submit Application application_1456149538698_0014 to YARN...\n"+
+            "16/02/17 14:28:42 INFO impl.YarnClientImpl: Submitted application application_1456149538698_0014\n";
+    private static final String EMPTY_ENV = "JAVA_OPTS=";
 
     @Mock
     private GearPumpCredentialsParser gearPumpCredentialsParser;
@@ -60,6 +66,8 @@ public class GearPumpDriverExecTest {
     private HdfsUtils hdfsUtils;
     @Mock
     private ExternalProcessExecutor externalProcessExecutor;
+    @Mock
+    private KerberosService kerberosService;
 
     @InjectMocks
     private GearPumpDriverExec gearPumpDriverExec;
@@ -71,7 +79,7 @@ public class GearPumpDriverExecTest {
         createMocks();
     }
 
-    private void createMocks() throws IOException, ExternalProcessException {
+    private void createMocks() throws IOException {
         when(gearPumpCredentialsParser.getApplicationId(Mockito.anyString())).thenReturn(APPLICATION_ID);
         when(resourceManagerService.getRealPath(Mockito.anyString())).thenReturn(DESTINATION_PATH);
 
@@ -83,26 +91,31 @@ public class GearPumpDriverExecTest {
         when(gearPumpOutputReportReader.fromOutput(Mockito.anyString())).thenReturn(gearPumpOutputReportReader);
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(MASTER_URL);
 
-        when(externalProcessExecutor.runWithProcessBuilder(Mockito.<String[]>any(), Mockito.anyString(),
-                Mockito.anyMapOf(String.class, String.class))).thenReturn(COMMAND_OUTPUT);
+        when(externalProcessExecutor.run(Mockito.<String[]>any(), Mockito.anyString(), Mockito.anyMapOf(String.class, String.class)))
+                .thenReturn(new ExternalProcessExecutorResult(0, COMMAND_OUTPUT, null));
+
+        when(kerberosService.getKerberosJavaOpts()).thenReturn(EMPTY_ENV);
     }
 
     @Test
     public void spawnGearPumpOnYarnSuccess() throws IOException, ExternalProcessException {
-        GearPumpCredentials credentials = gearPumpDriverExec.spawnGearPumpOnYarn(new HashMap<>());
+        SpawnResult result = gearPumpDriverExec.spawnGearPumpOnYarn("");
+        GearPumpCredentials credentials = result.getGearPumpCredentials();
         assertThat(credentials.getYarnApplicationId(), equalTo(APPLICATION_ID));
         assertThat(credentials.getMasters(), equalTo(MASTER_URL));
     }
 
-    @Test(expected = ExternalProcessException.class)
+    @Test
     public void spawnGearPumpOnYarnThrowsExternalProcessExceptionWhenMasterIsNull() throws IOException, ExternalProcessException {
         when(gearPumpOutputReportReader.getMasterUrl()).thenReturn(null);
-        gearPumpDriverExec.spawnGearPumpOnYarn(new HashMap<>());
+        SpawnResult result = gearPumpDriverExec.spawnGearPumpOnYarn(null);
+        assertThat(result.getException(), instanceOf(ExternalProcessException.class));
     }
 
-    @Test(expected = ExternalProcessException.class)
+    @Test
     public void spawnGearPumpOnYarnThrowsExternalProcessExceptionWhenApplicationIdIsNull() throws IOException, ExternalProcessException {
         when(gearPumpCredentialsParser.getApplicationId(Mockito.anyString())).thenReturn(null);
-        gearPumpDriverExec.spawnGearPumpOnYarn(new HashMap<>());
+        SpawnResult result = gearPumpDriverExec.spawnGearPumpOnYarn(null);
+        assertThat(result.getException(), instanceOf(ExternalProcessException.class));
     }
 }

@@ -26,13 +26,12 @@ import org.trustedanalytics.servicebroker.gearpump.config.CatalogConfig;
 import org.trustedanalytics.servicebroker.gearpump.config.KerberosConfig;
 import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
-import org.trustedanalytics.servicebroker.gearpump.service.externals.ExternalProcessException;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.GearPumpDriverExec;
+import org.trustedanalytics.servicebroker.gearpump.service.externals.SpawnResult;
 import org.trustedanalytics.servicebroker.gearpump.yarn.YarnAppManager;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class GearPumpSpawner {
@@ -49,23 +48,31 @@ public class GearPumpSpawner {
     @Autowired
     private CatalogConfig configuration;
 
-    public GearPumpSpawner(GearPumpDriverExec gearPumpDriver, CloudFoundryService cloudFoundryService,
-                           YarnAppManager yarnAppManager) throws IOException, LoginException {
+    public GearPumpSpawner(GearPumpDriverExec gearPumpDriver,
+                           CloudFoundryService cloudFoundryService,
+                           YarnAppManager yarnAppManager) throws IOException {
         this.gearPumpDriver = gearPumpDriver;
         this.cloudFoundryService = cloudFoundryService;
         this.yarnAppManager = yarnAppManager;
         kerberosService = new KerberosService(new KerberosConfig().getKerberosProperties());
     }
 
-    private GearPumpCredentials provisionOnYarn(String numberOfWorkers) throws IOException, ExternalProcessException {
-        HashMap<String, String> arguments = new HashMap<>();
-        arguments.put("numberOfWorkers", numberOfWorkers);
-        return gearPumpDriver.spawnGearPumpOnYarn(arguments);
+    private GearPumpCredentials provisionOnYarn(String numberOfWorkers) throws Exception {
+        SpawnResult spawnResult = gearPumpDriver.spawnGearPumpOnYarn(numberOfWorkers);
+        LOGGER.debug("spawnResult: {}", spawnResult.toString());
+        if (spawnResult.getStatus() == SpawnResult.STATUS_OK) {
+            LOGGER.debug("SpawnResult.STATUS_OK");
+            return spawnResult.getGearPumpCredentials();
+        } else {
+            LOGGER.warn("SpawnResult NOT OK!");
+            cleanUp(spawnResult.getGearPumpCredentials());
+            throw spawnResult.getException();
+        }
     }
 
     private void provisionOnCf(GearPumpCredentials gearPumpCredentials, String spaceId, String orgId, String serviceInstanceId)
             throws DashboardServiceException, CloudFoundryServiceException {
-        LOGGER.info("Pcd ge rovisioning on Cloud Foundry");
+        LOGGER.info("Provisioning on Cloud Foundry");
 
         String UIServiceInstanceName = "gearpump-ui-" + serviceInstanceId;
         String username = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
@@ -86,7 +93,7 @@ public class GearPumpSpawner {
 
     private void cleanUp(GearPumpCredentials gearPumpCredentials) {
         LOGGER.info("cleanUp [" + gearPumpCredentials + "]");
-        if ( !(gearPumpCredentials != null && Strings.isNullOrEmpty(gearPumpCredentials.getYarnApplicationId()))) {
+        if ( gearPumpCredentials != null && !Strings.isNullOrEmpty(gearPumpCredentials.getYarnApplicationId())) {
             LOGGER.debug("Found yarnApplicationId {}", gearPumpCredentials.getYarnApplicationId());
             try {
                 yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
@@ -94,11 +101,12 @@ public class GearPumpSpawner {
             } catch (YarnException e) {
                 LOGGER.warn("YARN problem while cleaning up.", e);
             }
+        } else {
+            LOGGER.debug("No yarnApplicationId for cleanup.");
         }
     }
 
-    public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId, String orgId, String planId)
-            throws LoginException, IOException, DashboardServiceException, CloudFoundryServiceException, ExternalProcessException {
+    public GearPumpCredentials provisionInstance(String serviceInstanceId, String spaceId, String orgId, String planId) throws Exception {
         LOGGER.info("Trying to provision gearPump for: " + serviceInstanceId);
         kerberosService.logIn();
 
@@ -118,11 +126,7 @@ public class GearPumpSpawner {
         yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
         LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
 
-        try {
-            cloudFoundryService.undeployUI(gearPumpCredentials.getDashboardGuid(), gearPumpCredentials.getUsername());
-        } catch (DashboardServiceException e) {
-            LOGGER.info("GearPump Dashboard instance has not been deleted");
-        }
+        cloudFoundryService.deleteUIServiceInstance(gearPumpCredentials.getDashboardGuid());
     }
 
     private String errorMsg(String serviceInstanceId) {

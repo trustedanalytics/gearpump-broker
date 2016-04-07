@@ -29,4 +29,4 @@ hs_err_pid*
 *.iml
 
 # files created during build for Cloud Foundry app
-manifest.yml
+/manifest.yml

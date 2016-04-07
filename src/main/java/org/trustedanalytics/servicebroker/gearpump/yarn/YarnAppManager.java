@@ -55,7 +55,7 @@ public class YarnAppManager {
         }
     }
 
-    private ApplicationId getApplicationId(String applicationId) throws IOException, YarnException {
+    private ApplicationId getApplicationId(String applicationId) throws IOException {
         return new YarnAppIdParser(applicationId).getApplicationId();
     }
 

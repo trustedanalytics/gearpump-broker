@@ -17,8 +17,6 @@ package org.trustedanalytics.servicebroker.gearpump.yarn;
 
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 
-import java.util.regex.Pattern;
-
 class YarnAppIdParser {
 
     private String applicationId;

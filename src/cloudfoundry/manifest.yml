@@ -17,7 +17,7 @@ applications:
     USER_PASSWORD: "placeholder"
     BASE_GUID: "gearpump"
     GEARPUMP_URI: "placeholder"
-    GEARPUMP_PACK_VERSION: "2.11-0.7.7-SNAPSHOT"
+    GEARPUMP_PACK_VERSION: "2.11-0.8.0"
     HDFS_DIR: /user/gearpump
     VERSION: ${version}
     TAGS: gearpump

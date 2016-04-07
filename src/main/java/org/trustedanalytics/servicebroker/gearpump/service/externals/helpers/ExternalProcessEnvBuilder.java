@@ -15,17 +15,9 @@
  */
 package org.trustedanalytics.servicebroker.gearpump.service.externals.helpers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosProperties;
-import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
-
-import java.io.IOException;
-
 public class ExternalProcessEnvBuilder {
 
-    private ExternalProcessEnvBuilder(){
-        
+    private ExternalProcessEnvBuilder() {
     }
 
     private static final String JAVA_OPTION_PREFIX = "-D";

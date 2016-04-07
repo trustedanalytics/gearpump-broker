@@ -19,20 +19,20 @@ package org.trustedanalytics.servicebroker.gearpump.service.prerequisities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.trustedanalytics.servicebroker.gearpump.config.ExternalConfiguration;
+import org.trustedanalytics.servicebroker.gearpump.service.externals.ExternalProcessException;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ConfigParser;
+import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ExternalProcessExecutor;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.HdfsUtils;
 import org.trustedanalytics.servicebroker.gearpump.service.file.ArchiverService;
 import org.trustedanalytics.servicebroker.gearpump.service.file.ResourceManagerService;
 import org.trustedanalytics.servicebroker.gearpump.yarn.YarnConfigFilesProvider;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
+
 
 @Service
 public class PrerequisitesChecker {
@@ -52,10 +52,15 @@ public class PrerequisitesChecker {
     private ExternalConfiguration externalConfiguration;
 
     @Autowired
-    private ConfigParser configParser;
+    private YarnConfigFilesProvider yarnConfigFilesProvider;
 
     @Autowired
-    private YarnConfigFilesProvider yarnConfigFilesProvider;
+    private ExternalProcessExecutor externalProcessExecutor;
+
+    @Value("${yarn.conf.dir}")
+    private String yarnConfDir;
+
+    private String destDir;
 
     /**
      * Ensure that requirements are met in order to start provisioning:
@@ -102,6 +107,24 @@ public class PrerequisitesChecker {
             //throw new PrerequisitesException("Cannot unzip and store yarn config files from yarn-gearpump");
             LOGGER.info("choke the exception for now - until we make sure yarn broker returns zipped configs");
         }
+
+        try {
+            destDir = resourceManagerService.getRealPath(externalConfiguration.getGearPumpDestinationFolder());
+            setBinariesExecutable();
+        } catch (IOException | ExternalProcessException e) {
+            LOGGER.error("Error making GearPump binaires executable.", e);
+            throw new PrerequisitesException("Error making GearPump binaires executable.", e);
+        }
+
+        try {
+            copyYarnConfigFiles(); // yarnclient ignores HADOOP_CONF_DIR. workaround is to put config files to gp/conf dir
+        } catch (ExternalProcessException e) {
+            LOGGER.error("Error checking HDFS directory for GearPump archive.", e);
+            throw new PrerequisitesException("Error checking HDFS directory for GearPump archive.", e);
+        }
+
+
+
 
         // 3. check if hdfs directory exists
         String hdfsDirectory = externalConfiguration.getHdfsDir();
@@ -150,5 +173,22 @@ public class PrerequisitesChecker {
             }
         }
         LOGGER.info("Archive IS stored in hdfs");
+    }
+
+
+
+    private void setBinariesExecutable() throws ExternalProcessException {
+        String[] command = new String[]{"chmod", "-R", "+x", "bin"};
+        runCommand(command);
+    }
+
+    private void copyYarnConfigFiles() throws ExternalProcessException {
+        String[] command = new String[]{"cp", "-R", String.format("%s/.", yarnConfDir), String.format("%s/conf/", destDir)};
+        runCommand(command);
+    }
+
+    private void runCommand(String[] command) throws ExternalProcessException {
+        LOGGER.debug("Executing command: {}", Arrays.toString(command));
+        externalProcessExecutor.runCommand(command, destDir, null);
     }
 }

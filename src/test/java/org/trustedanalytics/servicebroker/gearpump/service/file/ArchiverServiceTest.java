@@ -47,7 +47,6 @@ public class ArchiverServiceTest {
     private byte[] tarGzFile;
     private final static byte[] fileTestContent = "Content".getBytes();
 
-    private String fakeResourcePath = "/";
 
     @Before
     public void init() throws IOException {
@@ -89,6 +88,7 @@ public class ArchiverServiceTest {
 
     @Test
     public void testUntarFromResourceSuccess() throws IOException {
+        String fakeResourcePath = "/";
         try (InputStream is = new ByteArrayInputStream(tarGzFile)) {
             archiverService.intoDestination("").untar(fakeResourcePath);
         }

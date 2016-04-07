@@ -27,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.trustedanalytics.hadoop.config.client.*;
 import org.trustedanalytics.hadoop.config.client.helper.Hdfs;
-import org.trustedanalytics.servicebroker.gearpump.config.ServiceInstanceServiceConfig;
 import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 
 import javax.security.auth.login.LoginException;

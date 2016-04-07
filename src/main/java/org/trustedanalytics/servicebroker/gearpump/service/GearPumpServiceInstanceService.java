@@ -16,7 +16,6 @@
 
 package org.trustedanalytics.servicebroker.gearpump.service;
 
-import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceBrokerException;
 import org.cloudfoundry.community.servicebroker.exception.ServiceInstanceExistsException;
 import org.cloudfoundry.community.servicebroker.model.CreateServiceInstanceRequest;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.trustedanalytics.cfbroker.store.impl.ForwardingServiceInstanceServiceStore;
 import org.trustedanalytics.servicebroker.gearpump.model.GearPumpCredentials;
-import org.trustedanalytics.servicebroker.gearpump.service.prerequisities.PrerequisitesChecker;
 
 import java.io.IOException;
 

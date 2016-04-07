@@ -30,14 +30,11 @@ import java.io.IOException;
 
 public class KerberosService {
 
-    private final KerberosProperties kerberosProperties;
-
     private static final String AUTHENTICATION_METHOD = "kerberos";
-
     private static final String AUTHENTICATION_METHOD_PROPERTY = "hadoop.security.authentication";
 
+    private final KerberosProperties kerberosProperties;
     private final AppConfiguration helper;
-
     private final ServiceInstanceConfiguration hdfsConf;
 
     @Autowired
@@ -64,11 +61,8 @@ public class KerberosService {
         return kerberosProperties.getUser();
     }
 
-    public String getKerberosJavaOpts() throws IOException {
-        if (!isKerberosEnabled()) {
-            return null;
-        }
-        return String.format("%s %s", buildKdcOption(), buildRealmOption());
+    public String getKerberosJavaOpts() {
+        return isKerberosEnabled() ? String.format("%s %s", buildKdcOption(), buildRealmOption()) : null;
     }
 
     public boolean isKerberosEnabled() {

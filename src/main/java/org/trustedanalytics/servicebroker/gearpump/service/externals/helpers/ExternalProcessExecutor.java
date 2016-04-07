@@ -18,11 +18,8 @@ package org.trustedanalytics.servicebroker.gearpump.service.externals.helpers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.trustedanalytics.servicebroker.gearpump.kerberos.KerberosService;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.ExternalProcessException;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -30,79 +27,75 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.google.common.base.Strings;
 
 @Service
 public class ExternalProcessExecutor {
 
-    @Autowired
-    private KerberosService kerberosService;
-
-    private static final String WORKERS_NUMBER_SWITCH = "-Dgearpump.yarn.worker.containers=";
-    private static final String WORKERS_MEMORY_LIMIT = "-Dgearpump.yarn.worker.memory=";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalProcessExecutor.class);
 
-    private void setEnvForProcessBuilder(Map<String, String> env, Map<String, String> arguments) throws IOException {
-        String env_options = Strings.nullToEmpty(kerberosService.getKerberosJavaOpts());
-
-        if(!Strings.isNullOrEmpty(arguments.get("numberOfWorkers"))) {
-            env_options += " " + WORKERS_NUMBER_SWITCH + arguments.get("numberOfWorkers");
-        }
-
-        if(!Strings.isNullOrEmpty(arguments.get("workersMemoryLimit"))) {
-            env_options += " " + WORKERS_MEMORY_LIMIT + arguments.get("workersMemoryLimit");
-        }
-
-        if (!env_options.isEmpty()) {
-            LOGGER.info("JAVA_OPTS: {}", env_options);
-            env.put("JAVA_OPTS", env_options);
+    private void updateEnvOfProcessBuilder(Map<String, String> processBuilderEnv, Map<String, String> properties) {
+        if (properties != null) {
+            processBuilderEnv.putAll(properties);
         }
     }
 
-    public String runWithProcessBuilder(String[] command, String workingDir, Map<String, String> arguments)
-            throws IOException, ExternalProcessException {
+    public ExternalProcessExecutorResult run(String[] command, String workingDir, Map<String, String> properties) {
+
         String lineToRun = Arrays.asList(command).stream().collect(Collectors.joining(" "));
 
         LOGGER.info("===================");
         LOGGER.info("Command to invoke: {}", lineToRun);
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
-        setEnvForProcessBuilder(processBuilder.environment(), arguments);
+        updateEnvOfProcessBuilder(processBuilder.environment(), properties);
 
         if (workingDir != null) {
             processBuilder.directory(new File(workingDir));
         }
         processBuilder.redirectErrorStream(true);
 
-        Process process = processBuilder.start();
-        BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
         StringBuffer processOutput = new StringBuffer();
-        String line;
-        while ((line = stdout.readLine()) != null) {
-            LOGGER.debug(":::::: " + line);
-            processOutput.append(line);
-            processOutput.append('\n');
-        }
-
+        Process process = null;
         try {
-            process.waitFor();
-        } catch (InterruptedException e) {
-            LOGGER.error("Command '" + lineToRun + "' interrupted.", e);
+            process = processBuilder.start();
+            BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = stdout.readLine()) != null) {
+                LOGGER.debug(":::::: " + line);
+                processOutput.append(line);
+                processOutput.append('\n');
+            }
+
+            try {
+                process.waitFor();
+            } catch (InterruptedException e) {
+                LOGGER.error("Command '" + lineToRun + "' interrupted.", e);
+            }
+            stdout.close();
+
+        } catch (IOException e) {
+            LOGGER.error("Problem executing external process.", e);
+            return new ExternalProcessExecutorResult(Integer.MIN_VALUE, "", e);
         }
 
-        stdout.close();
+        ExternalProcessExecutorResult result = new ExternalProcessExecutorResult(process.exitValue(), processOutput.toString(), null);
 
-        int exitCode = process.exitValue();
-        LOGGER.info("Output: {}", processOutput.toString());
-        LOGGER.info("Exit value: {}", exitCode);
+        LOGGER.info("Exit value: {}", result.getExitCode());
         LOGGER.info("===================");
+        return result;
+    }
 
-        if (exitCode != 0) {
-            throw new ExternalProcessException("GearPump driver exited with code " + exitCode);
+    public String runCommand(String[] command, String workingDir, Map<String, String> properties) throws ExternalProcessException {
+        ExternalProcessExecutorResult result = run(command, workingDir, properties);
+
+        if (result.getException() != null) {
+            throw new ExternalProcessException("GearPump driver exited with exception " + result.getException(), result.getException());
+        }
+        if (result.getExitCode() != 0) {
+            throw new ExternalProcessException("GearPump driver exited with code " + result.getExitCode());
         }
 
-        return processOutput.toString();
+        return result.getOutput();
     }
 }

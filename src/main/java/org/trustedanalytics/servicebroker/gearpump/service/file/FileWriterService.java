@@ -25,9 +25,9 @@ import java.io.*;
 @Service
 public class FileWriterService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileWriterService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileWriterService.class);
 
-    private final static int BUFFER = 2048;
+    private static final int BUFFER = 2048;
 
     private boolean shouldOverride;
 
@@ -46,7 +46,7 @@ public class FileWriterService {
 
     public boolean writeToFile(InputStream inputStream, boolean isDirectory) throws IOException {
         if (isOutputExists() && !shouldOverride) {
-            logger.info("File {} exists and won't be overriden.", fileWriter.getOutputName());
+            LOGGER.info("File {} exists and won't be overriden.", fileWriter.getOutputName());
             return false;
         }
         if (isDirectory) {
@@ -68,7 +68,7 @@ public class FileWriterService {
 
     private void writeData(InputStream inputStream) throws IOException {
         int count;
-        byte data[] = new byte[BUFFER];
+        byte[] data = new byte[BUFFER];
         OutputStream fos = fileWriter.getOutputStream();
         try(BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER)){
             while ((count = inputStream.read(data, 0, BUFFER)) != -1) {

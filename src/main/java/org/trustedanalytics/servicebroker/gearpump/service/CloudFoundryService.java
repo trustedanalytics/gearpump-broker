@@ -44,6 +44,8 @@ import java.util.Map;
 @Service
 public class CloudFoundryService {
 
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String CONTENT_TYPE_HEADER = "Content-Type";
     @Autowired
     private CfCallerConfiguration cfCallerConfiguration;
 
@@ -254,14 +256,14 @@ public class CloudFoundryService {
         }
     }
 
-    private String createUaaToken(String client_id, String client_secret) throws DashboardServiceException {
+    private String createUaaToken(String clientId, String clientSecret) throws DashboardServiceException {
         LOGGER.info("Creating new UAA token");
 
-        String autorizationString = client_id + ":" + client_secret;
+        String autorizationString = clientId + ":" + clientSecret;
         autorizationString = new String(Base64.getEncoder().encode(autorizationString.getBytes()));
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Basic " + autorizationString);
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
+        headers.add(AUTHORIZATION_HEADER, "Basic " + autorizationString);
+        headers.add(CONTENT_TYPE_HEADER, "application/x-www-form-urlencoded");
 
         ResponseEntity<String> response = executeWithHeaders(CREATE_UAA_TOKEN_URL, HttpMethod.POST, CREATE_UAA_TOKEN_BODY_TEMPLATE, headers, uaaTokenApiEndpoint);
         String uaaToken;
@@ -275,32 +277,32 @@ public class CloudFoundryService {
         return uaaToken;
     }
 
-    private String createUaaClient(String client_id, String client_name, String client_secret, String redirectUri, String token) throws DashboardServiceException {
+    private String createUaaClient(String clientId, String clientName, String clientSecret, String redirectUri, String token) throws DashboardServiceException {
         LOGGER.info("Creating new UAA client");
-        String body = String.format(CREATE_UAA_CLIENT_BODY_TEMPLATE, client_id, client_name, client_secret, "http://" + redirectUri + REDIRECT_URI_SUFIX);
+        String body = String.format(CREATE_UAA_CLIENT_BODY_TEMPLATE, clientId, clientName, clientSecret, "http://" + redirectUri + REDIRECT_URI_SUFIX);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", token);
-        headers.add("Content-Type", "application/json");
+        headers.add(AUTHORIZATION_HEADER, token);
+        headers.add(CONTENT_TYPE_HEADER, "application/json");
 
         ResponseEntity<String> response = executeWithHeaders(CREATE_UAA_CLIENT_URL, HttpMethod.POST, body, headers, uaaApiEndpoint);
         LOGGER.debug("Created UAA client: {}", response.getBody());
         return response.getBody();
     }
 
-    private String deleteUaaClient(String client_id, String token) {
+    private String deleteUaaClient(String clientId, String token) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", token);
-        headers.add("Content-Type", "application/json");
+        headers.add(AUTHORIZATION_HEADER, token);
+        headers.add(CONTENT_TYPE_HEADER, "application/json");
 
         try {
-            LOGGER.debug("Deleting UAA client: {}", client_id);
-            return executeWithHeaders(DELETE_UAA_CLIENT_URL, HttpMethod.DELETE, "", headers, uaaApiEndpoint, client_id).getBody();
+            LOGGER.debug("Deleting UAA client: {}", clientId);
+            return executeWithHeaders(DELETE_UAA_CLIENT_URL, HttpMethod.DELETE, "", headers, uaaApiEndpoint, clientId).getBody();
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                LOGGER.debug("Cannot delete UAA client: {}. It is not exists.", client_id);
+                LOGGER.debug("Cannot delete UAA client: {}. It is not exists.", clientId);
             } else {
-                LOGGER.debug("Cannot delete UAA client: {} Error: {}", client_id, e.getStatusText());
+                LOGGER.debug("Cannot delete UAA client: {} Error: {}", clientId, e.getStatusText());
                 throw e;
             }
         }
@@ -332,7 +334,7 @@ public class CloudFoundryService {
         }
 
         String uaaToken = createUaaToken(ssoAdminClientId, ssoAdminClientSecret);
-        String clientData = createUaaClient(username, username, password, uiAppUrl, uaaToken);
+        createUaaClient(username, username, password, uiAppUrl, uaaToken);
 
         Map<String, String> dashboardData = new HashMap<>();
         dashboardData.put("uiServiceInstanceGuid", uiServiceInstanceGuid);
@@ -343,11 +345,11 @@ public class CloudFoundryService {
         return dashboardData;
     }
 
-    public String undeployUI(String dashboardUri, String client_id)
+    public String undeployUI(String dashboardUri, String clientId)
             throws DashboardServiceException {
         deleteUIServiceInstance(dashboardUri);
 
         String uaaToken = createUaaToken(ssoAdminClientId, ssoAdminClientSecret);
-        return deleteUaaClient(client_id, uaaToken);
+        return deleteUaaClient(clientId, uaaToken);
     }
 }

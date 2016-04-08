@@ -35,7 +35,6 @@ public class ConfigParser {
         String result = "";
         Matcher m = MASTERS_PATTERN.matcher(input);
         String replacement = String.format(REPLACEMENT_TEMPLATE, provisionedFolder, hdfsDirectory);
-        //String replacement = String.format(REPLACEMENT_TEMPLATE, "/user/gearpump/", "");
         result = m.replaceAll(replacement);
         return result;
     }

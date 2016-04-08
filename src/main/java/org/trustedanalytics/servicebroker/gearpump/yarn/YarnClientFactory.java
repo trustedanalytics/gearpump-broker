@@ -23,13 +23,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class YarnClientFactory {
 
+    @Autowired
+    private org.apache.hadoop.conf.Configuration yarnConfiguration;
+
     @Bean
     public YarnClientFactory yarnClientFactory() {
         return new YarnClientFactory();
     }
-
-    @Autowired
-    private org.apache.hadoop.conf.Configuration yarnConfiguration;
 
     public YarnClient getYarnClient() {
         YarnClient yarnClient = YarnClient.createYarnClient();

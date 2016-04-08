@@ -16,11 +16,10 @@
 package org.trustedanalytics.servicebroker.gearpump.service.externals.helpers;
 
 public class ExternalProcessEnvBuilder {
+    private static final String JAVA_OPTION_PREFIX = "-D";
 
     private ExternalProcessEnvBuilder() {
     }
-
-    private static final String JAVA_OPTION_PREFIX = "-D";
 
     public static String buildJavaParam(String key, String value) {
         StringBuilder javaParam = new StringBuilder();

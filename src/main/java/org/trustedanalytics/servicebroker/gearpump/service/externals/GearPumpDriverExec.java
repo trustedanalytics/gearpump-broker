@@ -87,7 +87,7 @@ public class GearPumpDriverExec {
             try {
                 mastersUrl = gearPumpOutputReportReader.fromOutput(outputReportFilePath).getMasterUrl();
             } catch (GearpumpOutputException e) {
-                LOGGER.warn("GearpumpOutputException {}", e.getMessage());
+                LOGGER.warn(String.format("GearpumpOutputException %s", e.getMessage()), e);
             }
         }
 
@@ -126,19 +126,19 @@ public class GearPumpDriverExec {
     private Map<String, String> getEnvForProcessBuilder(String numberOfWorkers, String workersMemoryLimit)  {
         Map<String, String> result = new HashMap<>();
 
-        String env_options = Strings.nullToEmpty(kerberosService.getKerberosJavaOpts());
+        String envOptions = Strings.nullToEmpty(kerberosService.getKerberosJavaOpts());
 
         if(!Strings.isNullOrEmpty(numberOfWorkers)) {
-            env_options += " " + WORKERS_NUMBER_SWITCH + numberOfWorkers;
+            envOptions += " " + WORKERS_NUMBER_SWITCH + numberOfWorkers;
         }
 
         if(!Strings.isNullOrEmpty(workersMemoryLimit)) {
-            env_options += " " + WORKERS_MEMORY_LIMIT + workersMemoryLimit;
+            envOptions += " " + WORKERS_MEMORY_LIMIT + workersMemoryLimit;
         }
 
-        if (!env_options.isEmpty()) {
-            LOGGER.info("JAVA_OPTS: {}", env_options);
-            result.put("JAVA_OPTS", env_options);
+        if (!envOptions.isEmpty()) {
+            LOGGER.info("JAVA_OPTS: {}", envOptions);
+            result.put("JAVA_OPTS", envOptions);
         }
         return result;
     }

@@ -71,7 +71,7 @@ public class CatalogConfig {
     }
 
     private Plan createPlan(String numberOfWorkers) {
-        String workerPlural = numberOfWorkers.equals("1") ? " worker" : " workers";
+        String workerPlural = "1".equals(numberOfWorkers) ? " worker" : " workers";
         return new Plan(
                 getCfBaseId() + "-workers-" + numberOfWorkers,
                 numberOfWorkers + workerPlural,

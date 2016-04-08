@@ -28,7 +28,7 @@ public class FileReaderService {
     private FileService fileService;
 
     private String readData(BufferedReader input) throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String line;
 
         while ((line = input.readLine()) != null) {

@@ -28,29 +28,34 @@ import java.io.InputStream;
 @Service
 public class ResourceManagerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResourceManagerService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceManagerService.class);
 
     @Autowired
     private ResourceLoader resourceLoader;
 
+
     public boolean checkIfExists(String filePath) {
-        Resource resource = resourceLoader.getResource(String.format("classpath:%s", filePath));
+        Resource resource = getResourceForPath(filePath);
         return resource != null && resource.exists();
     }
 
+    private Resource getResourceForPath(String filePath) {
+        return resourceLoader.getResource(String.format("classpath:%s", filePath));
+    }
+
     public String getRealPath(String path) throws IOException {
-        Resource resource = resourceLoader.getResource(String.format("classpath:%s", path));
+        Resource resource = getResourceForPath(path);
         try {
             return resource.getURI().getPath();
         } catch (IOException e) {
-            logger.error("Cannot get resource URI. ", e);
+            LOGGER.error("Cannot get resource URI. ", e);
             throw e;
         }
     }
 
     public InputStream getResourceInputStream(String path) throws IOException {
-        Resource resource = resourceLoader.getResource(String.format("classpath:%s", path));
-        logger.info("Got the resource: {}", resource.getURI());
+        Resource resource = getResourceForPath(path);
+        LOGGER.info("Got the resource: {}", resource.getURI());
 
         return resource.getInputStream();
     }

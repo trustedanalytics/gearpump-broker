@@ -102,7 +102,7 @@ public class HdfsUtils {
     }
 
     public static String makeLocal(String path) {
-        return path.startsWith(("/")) ? path.substring(1) : path;
+        return path.startsWith("/") ? path.substring(1) : path;
     }
 
     public static String ensureTrailingSlash(String text) {

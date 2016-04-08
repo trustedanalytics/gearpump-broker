@@ -54,7 +54,7 @@ public class ExternalProcessExecutor {
         }
         processBuilder.redirectErrorStream(true);
 
-        StringBuffer processOutput = new StringBuffer();
+        StringBuilder processOutput = new StringBuilder();
         Process process = null;
         try {
             process = processBuilder.start();

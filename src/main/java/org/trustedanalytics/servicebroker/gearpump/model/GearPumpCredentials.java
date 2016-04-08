@@ -29,17 +29,6 @@ public class GearPumpCredentials {
     private String username;
     private String password;
 
-    public Map<String, Object> toMap() {
-        return ImmutableMap.<String, Object>builder()
-                .put("masters", masters)
-                .put("yarnApplicationId", yarnApplicationId)
-                .put("dashboardUrl", dashboardUrl)
-                .put("dashboardGuid", dashboardGuid)
-                .put("username", username)
-                .put("password", password)
-                .build();
-    }
-
     public GearPumpCredentials(String masters, String yarnApplicationId) {
         this.masters = masters;
         this.yarnApplicationId = yarnApplicationId;
@@ -53,6 +42,17 @@ public class GearPumpCredentials {
         this.dashboardGuid = dashboardGuid;
         this.username = username;
         this.password = password;
+    }
+
+    public Map<String, Object> toMap() {
+        return ImmutableMap.<String, Object>builder()
+                .put("masters", masters)
+                .put("yarnApplicationId", yarnApplicationId)
+                .put("dashboardUrl", dashboardUrl)
+                .put("dashboardGuid", dashboardGuid)
+                .put("username", username)
+                .put("password", password)
+                .build();
     }
 
     public String getDashboardUrl() {

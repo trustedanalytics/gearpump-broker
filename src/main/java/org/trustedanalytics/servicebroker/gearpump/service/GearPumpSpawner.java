@@ -30,7 +30,6 @@ import org.trustedanalytics.servicebroker.gearpump.service.externals.GearPumpDri
 import org.trustedanalytics.servicebroker.gearpump.service.externals.SpawnResult;
 import org.trustedanalytics.servicebroker.gearpump.yarn.YarnAppManager;
 
-import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.util.Map;
 
@@ -74,12 +73,12 @@ public class GearPumpSpawner {
             throws DashboardServiceException, CloudFoundryServiceException {
         LOGGER.info("Provisioning on Cloud Foundry");
 
-        String UIServiceInstanceName = "gearpump-ui-" + serviceInstanceId;
+        String uiServiceInstanceName = "gearpump-ui-" + serviceInstanceId;
         String username = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
         String password = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
 
         Map<String, String> dashboardData
-                = cloudFoundryService.deployUI(UIServiceInstanceName, username, password, gearPumpCredentials.getMasters(), spaceId, orgId);
+                = cloudFoundryService.deployUI(uiServiceInstanceName, username, password, gearPumpCredentials.getMasters(), spaceId, orgId);
 
         updateCredentials(gearPumpCredentials, dashboardData);
     }
@@ -122,14 +121,10 @@ public class GearPumpSpawner {
         return credentials;
     }
 
-    public void deprovisionInstance(GearPumpCredentials gearPumpCredentials) throws YarnException {
+    public void deprovisionInstance(GearPumpCredentials gearPumpCredentials) throws YarnException, DashboardServiceException {
         yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
         LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
 
-        cloudFoundryService.deleteUIServiceInstance(gearPumpCredentials.getDashboardGuid());
-    }
-
-    private String errorMsg(String serviceInstanceId) {
-        return "Unable to provision gearPump for: " + serviceInstanceId;
+        cloudFoundryService.undeployUI(gearPumpCredentials.getDashboardGuid(), gearPumpCredentials.getUsername());
     }
 }

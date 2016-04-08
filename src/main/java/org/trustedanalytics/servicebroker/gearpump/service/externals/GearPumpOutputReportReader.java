@@ -18,8 +18,6 @@ package org.trustedanalytics.servicebroker.gearpump.service.externals;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.trustedanalytics.servicebroker.gearpump.service.file.FileReaderService;

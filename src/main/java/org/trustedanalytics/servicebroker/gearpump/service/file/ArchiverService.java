@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ArchiverService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ArchiverService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArchiverService.class);
 
     @Autowired
     private ResourceManagerService resourceManager;
@@ -69,7 +69,7 @@ public class ArchiverService {
             tarInput.close();
         }
 
-        logger.debug("untar completed successfully!!");
+        LOGGER.debug("untar completed successfully!!");
     }
 
     public void unzip(String archiveFile) throws IOException {
@@ -86,7 +86,7 @@ public class ArchiverService {
     private void unpack(ArchiveInputStream inputStream) throws IOException {
         ArchiveEntry entry = null;
         while ((entry = inputStream.getNextEntry()) != null) {
-            logger.info("Extracting: {}", entry.getName());
+            LOGGER.info("Extracting: {}", entry.getName());
             fileWriter.intoDestination(destinationDir + entry.getName())
                     .withOverride(shouldOverrideFiles)
                     .writeToFile(inputStream, entry.isDirectory());

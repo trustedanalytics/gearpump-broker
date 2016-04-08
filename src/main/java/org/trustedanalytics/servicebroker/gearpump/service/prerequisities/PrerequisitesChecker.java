@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.trustedanalytics.servicebroker.gearpump.config.ExternalConfiguration;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.ExternalProcessException;
-import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ConfigParser;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.ExternalProcessExecutor;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.HdfsUtils;
 import org.trustedanalytics.servicebroker.gearpump.service.file.ArchiverService;
@@ -102,10 +101,8 @@ public class PrerequisitesChecker {
         try {
             yarnConfigFilesProvider.prepareConfigFiles();
         } catch (IOException e) {
-            LOGGER.error("Cannot unzip and store yarn config files from yarn-gearpump");
-            // TODO XXX choke the exception for now - until we make sure yarn broker returns zipped configs
-            //throw new PrerequisitesException("Cannot unzip and store yarn config files from yarn-gearpump");
-            LOGGER.info("choke the exception for now - until we make sure yarn broker returns zipped configs");
+            LOGGER.error("Cannot unzip and store yarn config files from yarn-gearpump", e);
+            throw new PrerequisitesException("Cannot unzip and store yarn config files from yarn-gearpump");
         }
 
         try {
@@ -119,12 +116,9 @@ public class PrerequisitesChecker {
         try {
             copyYarnConfigFiles(); // yarnclient ignores HADOOP_CONF_DIR. workaround is to put config files to gp/conf dir
         } catch (ExternalProcessException e) {
-            LOGGER.error("Error checking HDFS directory for GearPump archive.", e);
-            throw new PrerequisitesException("Error checking HDFS directory for GearPump archive.", e);
+            LOGGER.error("Error copying yarn config files.", e);
+            throw new PrerequisitesException("Error copying yarn config files.", e);
         }
-
-
-
 
         // 3. check if hdfs directory exists
         String hdfsDirectory = externalConfiguration.getHdfsDir();
@@ -133,8 +127,8 @@ public class PrerequisitesChecker {
         try {
             hdfsDirExists = hdfsUtils.directoryExists(hdfsDirectory);
         } catch (IOException e) {
-            LOGGER.error("Error checking HDFS directory for GearPump archive.", e);
-            throw new PrerequisitesException("Error checking HDFS directory for GearPump archive.", e);
+            LOGGER.error("Error checking if HDFS directory for GearPump exists.", e);
+            throw new PrerequisitesException("Error checking if HDFS directory for GearPump exists.", e);
         }
 
         if (!hdfsDirExists) {

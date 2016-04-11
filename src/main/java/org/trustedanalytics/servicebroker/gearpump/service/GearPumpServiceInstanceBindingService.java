@@ -55,7 +55,7 @@ public class GearPumpServiceInstanceBindingService extends ForwardingServiceInst
 
     private Map<String, Object> getCredentialsFor(String serviceInstanceId) {
         LOGGER.info("getCredentialsFor serviceInstanceId = [" + serviceInstanceId + "]");
-        GearPumpCredentials gearpumpCredentials = null;
+        GearPumpCredentials gearpumpCredentials;
         try {
             gearpumpCredentials = credentialPersistorService.readCredentials(serviceInstanceId);
             return gearpumpCredentials.toMap();

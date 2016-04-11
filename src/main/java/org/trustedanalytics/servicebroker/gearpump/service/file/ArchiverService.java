@@ -84,7 +84,7 @@ public class ArchiverService {
     }
 
     private void unpack(ArchiveInputStream inputStream) throws IOException {
-        ArchiveEntry entry = null;
+        ArchiveEntry entry;
         while ((entry = inputStream.getNextEntry()) != null) {
             LOGGER.info("Extracting: {}", entry.getName());
             fileWriter.intoDestination(destinationDir + entry.getName())

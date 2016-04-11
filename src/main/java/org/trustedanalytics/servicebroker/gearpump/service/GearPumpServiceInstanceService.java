@@ -62,6 +62,11 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
             throw prepareSBException("Couldn't spawn GearPump instance", e);
         }
 
+        if (gearPumpCredentials == null) {
+            LOGGER.error("Couldn't spawn GearPump instance");
+            throw new ServiceBrokerException("Couldn't spawn GearPump instance (null credentials).");
+        }
+
         try {
             credentialPersistorService.persistCredentials(instanceId, gearPumpCredentials.toMap());
             LOGGER.info("Persisted GearPump credentials {}", gearPumpCredentials);
@@ -76,7 +81,7 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
     public ServiceInstance deleteServiceInstance(DeleteServiceInstanceRequest request) throws ServiceBrokerException {
         LOGGER.info("Deleting GearPump service instance with guid: {}", request.getServiceInstanceId());
 
-        GearPumpCredentials gearpumpCredentials = null;
+        GearPumpCredentials gearpumpCredentials;
 
         try {
             gearpumpCredentials = credentialPersistorService.readCredentials(request.getServiceInstanceId());

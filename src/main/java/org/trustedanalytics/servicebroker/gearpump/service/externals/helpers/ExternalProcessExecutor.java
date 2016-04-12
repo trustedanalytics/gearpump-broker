@@ -55,7 +55,7 @@ public class ExternalProcessExecutor {
         processBuilder.redirectErrorStream(true);
 
         StringBuilder processOutput = new StringBuilder();
-        Process process;
+        Process process = null;
         try {
             process = processBuilder.start();
             BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));

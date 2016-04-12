@@ -32,9 +32,11 @@ public class ConfigParser {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     public String ensureProperConfigFolder(String input, String provisionedFolder, String hdfsDirectory) {
+        String result = "";
         Matcher m = MASTERS_PATTERN.matcher(input);
         String replacement = String.format(REPLACEMENT_TEMPLATE, provisionedFolder, hdfsDirectory);
-        return m.replaceAll(replacement);
+        result = m.replaceAll(replacement);
+        return result;
     }
 
     public void overwriteFile(Path path, String content) throws IOException {

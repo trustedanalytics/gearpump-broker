@@ -123,7 +123,7 @@ public class PrerequisitesChecker {
         // 3. check if hdfs directory exists
         String hdfsDirectory = externalConfiguration.getHdfsDir();
         LOGGER.info("Check if HDFS directory for GearPump archive exists.");
-        boolean hdfsDirExists = false;
+        boolean hdfsDirExists;
         try {
             hdfsDirExists = hdfsUtils.directoryExists(hdfsDirectory);
         } catch (IOException e) {
@@ -147,7 +147,7 @@ public class PrerequisitesChecker {
         //4. check if the pack is in hdfs
         String hdfsFilePath = externalConfiguration.getHdfsGearPumpPackPath();
         LOGGER.info("Checking if the archive ({}) is stored in hdfs", hdfsFilePath);
-        boolean hdfsFileExists = false;
+        boolean hdfsFileExists;
         try {
             hdfsFileExists = hdfsUtils.exists(hdfsFilePath);
         } catch (IOException e) {

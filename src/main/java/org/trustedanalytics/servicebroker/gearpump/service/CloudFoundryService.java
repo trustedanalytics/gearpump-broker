@@ -35,6 +35,7 @@ import org.springframework.web.util.UriTemplate;
 import org.trustedanalytics.servicebroker.gearpump.config.CfCallerConfiguration;
 import org.trustedanalytics.servicebroker.gearpump.service.externals.helpers.CfCaller;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
@@ -103,6 +104,15 @@ public class CloudFoundryService {
     private static String uiSpaceGuid;
     private static String uiServiceGuid;
     private static String uiServicePlanGuid;
+
+    @PostConstruct
+    private void init() throws DashboardServiceException {
+        LOGGER.info("Obtaining org, space, service and plan GUIDs.");
+        uiOrgGuid = getUIOrgGuid();
+        uiSpaceGuid = getUISpaceGuid(uiOrgGuid);
+        uiServiceGuid = getUIServiceGuid(uiSpaceGuid);
+        uiServicePlanGuid = getUIServicePlanGuid(uiServiceGuid);
+    }
 
     private String getUIOrgGuid() throws DashboardServiceException {
         LOGGER.debug("getUIOrgGuid()");
@@ -311,11 +321,6 @@ public class CloudFoundryService {
 
     public Map<String, String> deployUI(String uiInstanceName, String username, String password, String gearpumpMaster, String spaceId, String orgId)
             throws DashboardServiceException, CloudFoundryServiceException {
-        String uiOrgGuid = getUIOrgGuid();
-        String uiSpaceGuid = getUISpaceGuid(uiOrgGuid);
-        String uiServiceGuid = getUIServiceGuid(uiSpaceGuid);
-        String uiServicePlanGuid = getUIServicePlanGuid(uiServiceGuid);
-
         String uiServiceInstanceGuid;
         String uiAppUrl;
         try {

@@ -39,6 +39,16 @@ public class ExternalProcessExecutor {
         }
     }
 
+    private void closeReader(BufferedReader reader) {
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+        } catch (IOException e) {
+            LOGGER.debug("Cannot close process input stream.", e);
+        }
+    }
+
     public ExternalProcessExecutorResult run(String[] command, String workingDir, Map<String, String> properties) {
 
         String lineToRun = Arrays.asList(command).stream().collect(Collectors.joining(" "));
@@ -56,9 +66,11 @@ public class ExternalProcessExecutor {
 
         StringBuilder processOutput = new StringBuilder();
         Process process;
+        BufferedReader stdout = null;
+
         try {
             process = processBuilder.start();
-            BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
             while ((line = stdout.readLine()) != null) {
@@ -72,11 +84,11 @@ public class ExternalProcessExecutor {
             } catch (InterruptedException e) {
                 LOGGER.error("Command '" + lineToRun + "' interrupted.", e);
             }
-            stdout.close();
-
         } catch (IOException e) {
             LOGGER.error("Problem executing external process.", e);
             return new ExternalProcessExecutorResult(Integer.MIN_VALUE, "", e);
+        } finally {
+            closeReader(stdout);
         }
 
         ExternalProcessExecutorResult result = new ExternalProcessExecutorResult(process.exitValue(), processOutput.toString(), null);

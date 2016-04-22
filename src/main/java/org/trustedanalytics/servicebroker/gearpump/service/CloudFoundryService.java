@@ -350,8 +350,7 @@ public class CloudFoundryService {
         return dashboardData;
     }
 
-    public String undeployUI(String dashboardUri, String clientId)
-            throws DashboardServiceException {
+    public String undeployUI(String dashboardUri, String clientId) throws DashboardServiceException {
         deleteUIServiceInstance(dashboardUri);
 
         String uaaToken = createUaaToken(ssoAdminClientId, ssoAdminClientSecret);

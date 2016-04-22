@@ -63,10 +63,17 @@ public class GearPumpDriverExec {
 
     private String destDir;
 
-    public SpawnResult spawnGearPumpOnYarn(String numberOfWorkers) throws IOException {
+    private String getDestDir() {
+        try {
+            return resourceManagerService.getRealPath(externalConfiguration.getGearPumpDestinationFolder());
+        } catch (IOException e) {
+            return null;
+        }
+    }
+    public SpawnResult spawnGearPumpOnYarn(String numberOfWorkers)  {
         LOGGER.info("spawnGearPumpOnYarn numberOfWorkers = [" + numberOfWorkers + "]");
 
-        destDir = resourceManagerService.getRealPath(externalConfiguration.getGearPumpDestinationFolder());
+        destDir = getDestDir();
 
         String outputReportFilePath = createOutputReportFilePath(destDir);
 

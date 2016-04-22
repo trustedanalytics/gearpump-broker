@@ -112,7 +112,9 @@ public class GearPumpSpawner {
         GearPumpCredentials credentials = null;
         try {
             credentials = provisionOnYarn(configuration.getNumberOfWorkers(planId));
-            provisionOnCf(credentials, spaceId, orgId, serviceInstanceId);
+            if (credentials != null) {
+                provisionOnCf(credentials, spaceId, orgId, serviceInstanceId);
+            }
         } catch (Exception e) {
             cleanUp(credentials);
             throw e;
@@ -122,9 +124,13 @@ public class GearPumpSpawner {
     }
 
     public void deprovisionInstance(GearPumpCredentials gearPumpCredentials) throws YarnException, DashboardServiceException {
-        yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
-        LOGGER.info("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
+        LOGGER.info("deprovisionInstance {}", gearPumpCredentials);
+        if (gearPumpCredentials != null) {
+            yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
+            LOGGER.debug("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
 
-        cloudFoundryService.undeployUI(gearPumpCredentials.getDashboardGuid(), gearPumpCredentials.getUsername());
+            cloudFoundryService.undeployUI(gearPumpCredentials.getDashboardGuid(), gearPumpCredentials.getUsername());
+            LOGGER.debug("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
+        }
     }
 }

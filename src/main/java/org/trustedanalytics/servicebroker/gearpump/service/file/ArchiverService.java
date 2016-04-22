@@ -66,7 +66,9 @@ public class ArchiverService {
             tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(new BufferedInputStream(inputStream)));
             unpack(tarInput);
         } finally {
-            tarInput.close();
+            if (tarInput != null) {
+                tarInput.close();
+            }
         }
 
         LOGGER.debug("untar completed successfully!!");

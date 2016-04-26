@@ -157,8 +157,8 @@ fi
 DIGEST=$(exec "$JAVACMD" -classpath "$CLASSPATH" io.gearpump.security.PasswordUtil -password $PASSWORD | tail -1)
 
 # replace config variables
-toFind=("\"admin\"" "\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\"" "<your client id registered on UAA>" "<your client secret registered on UAA>" "http://<cloud foundry login endpoint>" "http://<cloud foundry api endpoint>" "<organization-guid>" "127.0.0.1:8090/login/oauth2/cloudfoundryuaa/callback")
-toReplace=("\"$USERNAME\"" "\"$DIGEST\"" $UAA_CLIENT_ID $UAA_CLIENT_SECRET $UAA_HOST $CF_API_ENDPOINT $ORG_ID "${CALLBACK}/login/oauth2/cloudfoundryuaa/callback")
+toFind=("\"AeGxGOxlU8QENdOXejCeLxy+isrCv0TrS37HwA==\"" "\"default-userrole\" = \"guest\"" "<your client id registered on UAA>" "<your client secret registered on UAA>" "http://<cloud foundry login endpoint>" "http://<cloud foundry api endpoint>" "<organization-guid>" "127.0.0.1:8090/login/oauth2/cloudfoundryuaa/callback")
+toReplace=("\"$DIGEST\"" "\"default-userrole\" = \"admin\"" $UAA_CLIENT_ID $UAA_CLIENT_SECRET $UAA_HOST $CF_API_ENDPOINT $ORG_ID "${CALLBACK}/login/oauth2/cloudfoundryuaa/callback")
 
 i=0
 for index in "${toFind[@]}"

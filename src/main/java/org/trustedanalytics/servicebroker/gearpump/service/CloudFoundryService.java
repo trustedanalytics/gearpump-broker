@@ -202,10 +202,10 @@ public class CloudFoundryService {
     }
 
     private String createUIInstance(String uiInstanceName, String spaceId, String orgId, String uiServicePlanGuid, String username,
-                                    String password, String gearpumpMaster) throws IOException {
+                                    String password, String gearpumpMaster, String uaaClientName) throws IOException {
         LOGGER.info("Creating Service Instance");
         String body = String.format(CREATE_SERVICE_BODY_TEMPLATE, uiInstanceName, spaceId, uiServicePlanGuid, uiInstanceName,
-                username, password, gearpumpMaster, username, password, loginHost(), cfApiEndpoint, orgId);
+                username, password, gearpumpMaster, uaaClientName, password, loginHost(), cfApiEndpoint, orgId);
         LOGGER.debug("Create app body: {}", body);
         ResponseEntity<String> response = execute(CREATE_SERVICE_INSTANCE_URL, HttpMethod.POST, body, cfApiEndpoint);
         String uiServiceInstanceGuid = cfCaller.getValueFromJson(response.getBody(), METADATA_GUID);
@@ -222,10 +222,10 @@ public class CloudFoundryService {
     }
 
     private void updateUIApp(String orgId, String username, String uiCallback, String uiAppGuid,
-                                    String password, String gearpumpMaster) throws IOException {
+                                    String password, String gearpumpMaster, String uaaClientName) throws IOException {
         LOGGER.info("Updating App Environments Instance");
         String body = String.format(UPDATE_APP_ENV_BODY_TEMPLATE, username,
-                password, gearpumpMaster, username, password, loginHost(), cfApiEndpoint, orgId, uiCallback);
+                password, gearpumpMaster, uaaClientName, password, loginHost(), cfApiEndpoint, orgId, uiCallback);
         LOGGER.debug("Update app body: {}", body);
         execute(UPDATE_APP_URL, HttpMethod.PUT, body, cfApiEndpoint, uiAppGuid);
     }
@@ -319,12 +319,13 @@ public class CloudFoundryService {
         return null;
     }
 
-    public Map<String, String> deployUI(String uiInstanceName, String username, String password, String gearpumpMaster, String spaceId, String orgId)
+    public Map<String, String> deployUI(String uiInstanceName, String username, String password, String gearpumpMaster,
+                                        String spaceId, String orgId, String uaaClientName)
             throws DashboardServiceException, CloudFoundryServiceException {
         String uiServiceInstanceGuid;
         String uiAppUrl;
         try {
-            uiServiceInstanceGuid = createUIInstance(uiInstanceName, spaceId, orgId, uiServicePlanGuid, username, password, gearpumpMaster);
+            uiServiceInstanceGuid = createUIInstance(uiInstanceName, spaceId, orgId, uiServicePlanGuid, username, password, gearpumpMaster, uaaClientName);
             uiAppUrl = getUIAppUrl(uiServiceInstanceGuid);
         } catch (IOException e) {
             throw new CloudFoundryServiceException("Cannot create UI instance.", e);
@@ -332,20 +333,21 @@ public class CloudFoundryService {
 
         try {
             String uiAppGuid = getUIAppGuid(uiAppUrl.replaceAll("\\.(.*)", ""), spaceId);
-            updateUIApp(orgId, username, uiAppUrl, uiAppGuid, password, gearpumpMaster);
+            updateUIApp(orgId, username, uiAppUrl, uiAppGuid, password, gearpumpMaster, uaaClientName);
             restartUIApp(uiAppGuid);
         } catch (IOException e) {
             throw new CloudFoundryServiceException("Cannot set environments and restart UI instance", e);
         }
 
         String uaaToken = createUaaToken(ssoAdminClientId, ssoAdminClientSecret);
-        createUaaClient(username, username, password, uiAppUrl, uaaToken);
+        createUaaClient(uaaClientName, uaaClientName, password, uiAppUrl, uaaToken);
 
         Map<String, String> dashboardData = new HashMap<>();
         dashboardData.put("uiServiceInstanceGuid", uiServiceInstanceGuid);
         dashboardData.put("uiAppUrl", uiAppUrl);
         dashboardData.put("username", username);
         dashboardData.put("password", password);
+        dashboardData.put("uaaClientName", uaaClientName);
 
         return dashboardData;
     }

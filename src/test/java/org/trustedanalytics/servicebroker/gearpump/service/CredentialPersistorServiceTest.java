@@ -44,15 +44,15 @@ public class CredentialPersistorServiceTest {
 
     @Test
     public void testToJSONString() throws Exception {
-        GearPumpCredentials gpc = new GearPumpCredentials("masters", "yarnApplicationId", "dashboardUrl", "dashboardGuid", "username", "password");
-        String expected = "{\"masters\":\"masters\",\"yarnApplicationId\":\"yarnApplicationId\",\"dashboardUrl\":\"dashboardUrl\",\"dashboardGuid\":\"dashboardGuid\",\"username\":\"username\",\"password\":\"password\"}";
+        GearPumpCredentials gpc = new GearPumpCredentials("masters", "yarnApplicationId", "dashboardUrl", "dashboardGuid", "username", "password", "uaaClientName");
+        String expected = "{\"masters\":\"masters\",\"yarnApplicationId\":\"yarnApplicationId\",\"dashboardUrl\":\"dashboardUrl\",\"dashboardGuid\":\"dashboardGuid\",\"username\":\"username\",\"password\":\"password\",\"uaaClientName\":\"uaaClientName\"}";
         String result = credentialPersistorService.toJSONString(gpc.toMap());
         assertThat(result, equalTo(expected));
     }
 
     @Test
     public void testFromJSONString() throws Exception {
-        String source = "{\"masters\":\"masters\",\"yarnApplicationId\":\"yarnApplicationId\",\"dashboardUrl\":\"dashboardUrl\",\"dashboardGuid\":\"dashboardGuid\",\"username\":\"username\",\"password\":\"password\"}";
+        String source = "{\"masters\":\"masters\",\"yarnApplicationId\":\"yarnApplicationId\",\"dashboardUrl\":\"dashboardUrl\",\"dashboardGuid\":\"dashboardGuid\",\"username\":\"username\",\"password\":\"password\",\"uaaClientName\":\"uaaClientName\"}";
         String result = credentialPersistorService.toJSONString(CredentialPersistorService.fromJSONString(source).toMap());
         assertThat(result, equalTo(source));
     }

@@ -73,7 +73,7 @@ public class GearPumpServiceInstanceBindingServiceTest {
     }
 
     private GearPumpCredentials getCredentials(String id) {
-        return new GearPumpCredentials("masters", "yarnApplicationId", "dashboardUrl", "dashboardGuid", "username", "password");
+        return new GearPumpCredentials("masters", "yarnApplicationId", "dashboardUrl", "dashboardGuid", "username", "password", "uaaClientName");
     }
 
 }

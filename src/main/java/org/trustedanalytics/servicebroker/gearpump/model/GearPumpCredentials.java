@@ -28,6 +28,7 @@ public class GearPumpCredentials {
     private String yarnApplicationId;
     private String username;
     private String password;
+    private String uaaClientName;
 
     public GearPumpCredentials(String masters, String yarnApplicationId) {
         this.masters = masters;
@@ -35,13 +36,14 @@ public class GearPumpCredentials {
     }
 
     public GearPumpCredentials(String masters, String yarnApplicationId, String dashboardUrl, String dashboardGuid,
-                               String username, String password) {
+                               String username, String password, String uaaClientName) {
         this.masters = masters;
         this.yarnApplicationId = yarnApplicationId;
         this.dashboardUrl = dashboardUrl;
         this.dashboardGuid = dashboardGuid;
         this.username = username;
         this.password = password;
+        this.uaaClientName = uaaClientName;
     }
 
     public Map<String, Object> toMap() {
@@ -52,6 +54,7 @@ public class GearPumpCredentials {
                 .put("dashboardGuid", dashboardGuid)
                 .put("username", username)
                 .put("password", password)
+                .put("uaaClientName", uaaClientName)
                 .build();
     }
 
@@ -103,6 +106,15 @@ public class GearPumpCredentials {
         this.password = password;
     }
 
+    public String getUaaClientName() {
+        return uaaClientName;
+    }
+
+    public void setUaaClientName(String uaaClientName) {
+        this.uaaClientName = uaaClientName;
+    }
+
+
     @Override
     public String toString() {
         return "GearPumpCredentials{" +
@@ -112,6 +124,7 @@ public class GearPumpCredentials {
                 ", dashboardGuid='" + dashboardGuid + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
+                ", uaaClientName='" + uaaClientName + '\'' +
                 '}';
     }
 }

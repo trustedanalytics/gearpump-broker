@@ -50,7 +50,8 @@ public class CredentialPersistorService {
                     (String) map.get("dashboardUrl"),
                     (String) map.get("dashboardGuid"),
                     (String) map.get("username"),
-                    (String) map.get("password"));
+                    (String) map.get("password"),
+                    (String) map.get("uaaClientName"));
         }
 
         return result;

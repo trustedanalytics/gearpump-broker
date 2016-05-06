@@ -40,6 +40,7 @@ public class GearPumpSpawner {
     private final GearPumpDriverExec gearPumpDriver;
     private final CloudFoundryService cloudFoundryService;
     private final YarnAppManager yarnAppManager;
+    private static final String ADMIN_USERNAME = "admin";
 
     //TODO can be Autowired in future
     private final KerberosService kerberosService;
@@ -74,11 +75,11 @@ public class GearPumpSpawner {
         LOGGER.info("Provisioning on Cloud Foundry");
 
         String uiServiceInstanceName = "gearpump-ui-" + serviceInstanceId;
-        String username = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
+        String uaaClientName = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
         String password = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
 
         Map<String, String> dashboardData
-                = cloudFoundryService.deployUI(uiServiceInstanceName, username, password, gearPumpCredentials.getMasters(), spaceId, orgId);
+                = cloudFoundryService.deployUI(uiServiceInstanceName, ADMIN_USERNAME, password, gearPumpCredentials.getMasters(), spaceId, orgId, uaaClientName);
 
         updateCredentials(gearPumpCredentials, dashboardData);
     }
@@ -88,6 +89,7 @@ public class GearPumpSpawner {
         gearPumpCredentials.setDashboardGuid(dashboardData.get("uiServiceInstanceGuid"));
         gearPumpCredentials.setUsername(dashboardData.get("username"));
         gearPumpCredentials.setPassword(dashboardData.get("password"));
+        gearPumpCredentials.setUaaClientName(dashboardData.get("uaaClientName"));
     }
 
     private void cleanUp(GearPumpCredentials gearPumpCredentials) {
@@ -129,7 +131,7 @@ public class GearPumpSpawner {
             yarnAppManager.killApplication(gearPumpCredentials.getYarnApplicationId());
             LOGGER.debug("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
 
-            cloudFoundryService.undeployUI(gearPumpCredentials.getDashboardGuid(), gearPumpCredentials.getUsername());
+            cloudFoundryService.undeployUI(gearPumpCredentials.getDashboardGuid(), gearPumpCredentials.getUaaClientName());
             LOGGER.debug("GearPump instance on Yarn has been deleted: {}", gearPumpCredentials.getYarnApplicationId());
         }
     }

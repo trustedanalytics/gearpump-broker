@@ -90,13 +90,13 @@ public class GearPumpServiceInstanceService extends ForwardingServiceInstanceSer
             throw prepareSBException("Couldn't obtain credentials", e);
         }
 
-        LOGGER.debug("Obtained GearPump credentials: {}", gearpumpCredentials);
+        LOGGER.debug("Obtained Apache Gearpump credentials: {}", gearpumpCredentials);
         try {
             gearPumpSpawner.deprovisionInstance(gearpumpCredentials);
             credentialPersistorService.removeCredentials(request.getServiceInstanceId());
         } catch (Exception e) {
-            LOGGER.error("Couldn't delete GearPump instance", e);
-            throw prepareSBException("Couldn't delete GearPump instance", e);
+            LOGGER.error("Couldn't delete Apache Gearpump instance", e);
+            throw prepareSBException("Couldn't delete Apache Gearpump instance", e);
         }
 
         return super.deleteServiceInstance(request);

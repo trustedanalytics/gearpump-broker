@@ -50,7 +50,7 @@ public class GearPumpOutputReportReader {
             String outputReport = fileReaderService.read(outputFileReport);
             return parseOutputReport(outputReport);
         } catch (JsonParseException | IOException e) {
-            throw new GearpumpOutputException("Unable to parse gearpump launch output report", e);
+            throw new GearpumpOutputException("Unable to parse Apache Gearpump launch output report", e);
         }
     }
 

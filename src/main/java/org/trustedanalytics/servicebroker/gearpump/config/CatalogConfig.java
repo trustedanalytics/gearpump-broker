@@ -49,6 +49,8 @@ public class CatalogConfig {
     private String imageUrl;
 
     private static final String IMAGE_URL = "imageUrl";
+    private static final String DISPLAY_NAME = "displayName";
+    private static final String DISPLAY_NAME_VALUE = "Apache Gearpump";
     private static final String SYSLOG_DRAIN = "syslog_drain";
 
     @Bean
@@ -85,6 +87,7 @@ public class CatalogConfig {
         Map<String,Object> serviceMetadata = new HashMap<>();
 
         serviceMetadata.put(IMAGE_URL, getImageUrl());
+        serviceMetadata.put(DISPLAY_NAME, DISPLAY_NAME_VALUE);
 
         return serviceMetadata;
     }

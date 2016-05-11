@@ -1,3 +1,5 @@
+[![Dependency Status](https://www.versioneye.com/user/projects/57236753ba37ce0031fc1d55/badge.svg?style=flat)](https://www.versioneye.com/user/projects/57236753ba37ce0031fc1d55)
+
 # gearpump-broker
 
 Cloud Foundry broker for Apache Gearpump (see: [http://gearpump.apache.org/](http://gearpump.apache.org/)).

@@ -78,6 +78,7 @@ public class CloudFoundryService {
     private static final String UAA_ACCESS_TOKEN = "/access_token";
     private static final String UAA_TOKEN_TYPE = "/token_type";
     private static final String APP_URL = "/entity/credentials/url";
+    private static final String APP_STATUS = "/0/state";
     private static final String CREATE_SERVICE_BODY_TEMPLATE = "{\"name\":\"%s\",\"space_guid\":\"%s\",\"service_plan_guid\":\"%s\",\"parameters\":{\"push_argument\":\"--no-start\",\"name\":\"%s\",\"USERNAME\":\"%s\",\"PASSWORD\":\"%s\",\"GEARPUMP_MASTER\":\"%s\",\"UAA_CLIENT_ID\":\"%s\",\"UAA_CLIENT_SECRET\":\"%s\",\"UAA_HOST\":\"%s\",\"CF_API_ENDPOINT\":\"%s\",\"ORG_ID\":\"%s\"}}";
     private static final String UPDATE_APP_ENV_BODY_TEMPLATE = "{\"environment_json\":{\"USERNAME\":\"%s\",\"PASSWORD\":\"%s\",\"GEARPUMP_MASTER\":\"%s\",\"UAA_CLIENT_ID\":\"%s\",\"UAA_CLIENT_SECRET\":\"%s\",\"UAA_HOST\":\"%s\",\"CF_API_ENDPOINT\":\"%s\",\"ORG_ID\":\"%s\",\"CALLBACK\":\"%s\"}}";
     private static final String CREATE_SERVICE_KEY_BODY_TEMPLATE = "{\"service_instance_guid\":\"%s\",\"name\":\"temp_param\"}";
@@ -92,6 +93,7 @@ public class CloudFoundryService {
     private static final String CREATE_SERVICE_INSTANCE_URL = "{apiUrl}/v2/service_instances";
     private static final String GET_APP_GUID_URL = "{apiUrl}/v2/spaces/{spaceGuid}/apps?q=name:{appName}";
     private static final String UPDATE_APP_URL = "{apiUrl}/v2/apps/{appGuid}";
+    private static final String GET_STATUS_APP_URL = "{apiUrl}/v2/apps/{appGuid}/stats";
     private static final String POST_CREATE_SERVICE_KEY_URL = "{apiUrl}/v2/service_keys";
     private static final String DELETE_SERVICE_KEY_URL = "{apiUrl}/v2/service_keys/{serviceKeyGuid}";
     private static final String DELETE_SERVICE_URL = "{apiUrl}/v2/service_instances/{serviceId}";
@@ -99,6 +101,9 @@ public class CloudFoundryService {
     private static final String CREATE_UAA_CLIENT_URL = "{uaaUrl}/oauth/clients";
     private static final String DELETE_UAA_CLIENT_URL = "{uaaUrl}/oauth/clients/{client_id}";
     private static final String REDIRECT_URI_SUFIX = "/login/oauth2/cloudfoundryuaa/callback";
+
+    private static final String UI_OK_STATUS = "RUNNING";
+    private static final int UI_MAX_STATUS_CHECK = 50;
 
     private static String uiOrgGuid;
     private static String uiSpaceGuid;
@@ -233,8 +238,19 @@ public class CloudFoundryService {
     private void restartUIApp(String uiAppGuid) throws IOException {
         LOGGER.info("Stopping ui app");
         execute(UPDATE_APP_URL, HttpMethod.PUT, STATUS_STOPPED_BODY, cfApiEndpoint, uiAppGuid);
-        LOGGER.info("Started ui app");
+        LOGGER.info("Starting ui app");
         execute(UPDATE_APP_URL, HttpMethod.PUT, STATUS_STARTED_BODY, cfApiEndpoint, uiAppGuid);
+        LOGGER.info("Waiting ui to start");
+
+        String status = "";
+        int statusCheckNr = 0;
+        ResponseEntity<String> response;
+        while(!status.equals(UI_OK_STATUS) && statusCheckNr < UI_MAX_STATUS_CHECK){
+            response = execute(GET_STATUS_APP_URL, HttpMethod.GET, null, cfApiEndpoint, uiAppGuid);
+            status = cfCaller.getValueFromJson(response.getBody(), APP_STATUS);
+            LOGGER.debug("UI app status check nr {}: {}", statusCheckNr, status);
+            statusCheckNr++;
+        }
     }
 
     public String loginHost() {

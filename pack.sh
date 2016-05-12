@@ -1,6 +1,6 @@
 set -e
 
-VERSION=$(cat pom.xml | grep "^    <version>.*</version>$" | awk -F'[><]' '{print $3}')
+VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -v '\[' | tail -1)
 PROJECT_NAME=$(basename $(pwd))
 PACKAGE_CATALOG=$PROJECT_NAME-$VERSION
 JAR_NAME="$PACKAGE_CATALOG.jar"
